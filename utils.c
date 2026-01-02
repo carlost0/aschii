@@ -13,9 +13,9 @@ typedef struct {
 } point_t;
 
 typedef struct {
-    char sprite;
     box_t size;
     point_t pos;
+    char sprite;
 } object_t;
 
 struct timespec ts;
@@ -88,4 +88,19 @@ void put_object(object_t obj) {
             screen_arr[i * screen.w + j] = obj.sprite;
         }
     }
+}
+
+// function stolen from https://peerdh.com/blogs/programming-insights/implementing-aabb-collision-detection-algorithms-in-c-for-2d-sprite-based-games-1
+int check_collision(object_t box1, object_t box2) {
+    // Check if box1 is to the left of box2
+    if (box1.pos.x + box1.size.w < box2.pos.x) return 0;
+    // Check if box1 is to the right of box2
+    if (box1.pos.x > box2.pos.x + box2.size.w) return 0;
+    // Check if box1 is above box2
+    if (box1.pos.y + box1.size.h < box2.pos.y) return 0;
+    // Check if box1 is below box2
+    if (box1.pos.y > box2.pos.y + box2.size.h) return 0;
+
+    // If none of the above, a collision has occurred
+    return 1;
 }

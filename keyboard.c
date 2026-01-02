@@ -11,16 +11,17 @@ void disable_canonical_input() {
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 }
 
-void enable_canonical_input(struct termios *oldt) {
-    tcsetattr(STDIN_FILENO, TCSANOW, oldt);  // restore old setting
+void enable_canonical_input() {
+    struct termios oldt;
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);  // restore old setting
 }
 
 char get_keyboard_input() {
     struct termios oldt;
-    disable_canonical_input();
+    //disable_canonical_input();
     char c = 0;
     read(STDIN_FILENO, &c, 1);
-    enable_canonical_input(&oldt);
+    //enable_canonical_input(&oldt);
     return c;
 }
 
