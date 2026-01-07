@@ -4,7 +4,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
-#include <math.h>
 
 typedef struct {
     int w, h;
@@ -104,10 +103,18 @@ void put_object(object_t obj) {
     }
 }
 
-void put_text(text_t text) {
+void put_text_horizontal(text_t text) {
     for (int i = text.pos.x; i < text.pos.x + strlen(text.str); i++) { 
         if (text.pos.x + strlen(text.str) != NULL) {
             screen_arr[text.pos.y * screen.w + i] = text.str[i - text.pos.x];
+        }
+    }
+}
+
+void put_text_vertical(text_t text) {
+    for (int i = text.pos.y; i < text.pos.y + strlen(text.str); i++) { 
+        if (text.pos.y + strlen(text.str) != NULL) {
+            screen_arr[i * screen.w + text.pos.x] = text.str[i - text.pos.y];
         }
     }
 }
