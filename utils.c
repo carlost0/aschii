@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
@@ -17,6 +18,11 @@ typedef struct {
     point_t pos;
     char sprite;
 } object_t;
+
+typedef struct {
+    point_t pos;
+    char * str;
+} text_t;
 
 struct timespec ts;
 
@@ -42,6 +48,7 @@ void init_screen(char c) {
 }
 
 void clear_screen() {
+    //remove line to get rid of flickering, can cause wierd scrolling
     printf("\e[1;1H\e[2J");
     memset(screen_arr, ' ', screen.w * screen.h);
 
@@ -87,6 +94,12 @@ void put_object(object_t obj) {
         for (int j = obj.pos.x; j < obj.pos.x + obj.size.w; j++) {
             screen_arr[i * screen.w + j] = obj.sprite;
         }
+    }
+}
+
+void put_text(text_t text) {
+    for (int i = text.pos.x; i < text.pos.x + strlen(text.str); i++) { 
+        if (text.pos.x + strlen(text.str) != NULL) screen_arr[text.pos.y * screen.w + i] = text.str[i - text.pos.x];
     }
 }
 

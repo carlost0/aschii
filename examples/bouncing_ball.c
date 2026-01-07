@@ -1,23 +1,24 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include "../utils.c"
 #include "../keyboard.c"
 
 int main() {
     int fps = 25;
+
     screen.w = 128;
     screen.h = 36;
+
     object_t ball = {
-        .size = {1, 1},
+        .size = {5, 3},
         .pos = {64, 18},
-        .sprite = 'o'
+        .sprite = '@'
     };
     
-    point_t velocity = {2, 1};
+    point_t ball_velocity = {2, 1};
     
     if (screen_arr != NULL) {
         free(screen_arr);
+        screen_arr = NULL;
     }
 
     init_screen(' ');
@@ -28,14 +29,14 @@ int main() {
         draw_screen();
         
         if (ball.pos.x + ball.size.w >= screen.w - 1 || ball.pos.x <= 1) {
-            velocity.x *= -1;
+            ball_velocity.x *= -1;
         }
 
         if (ball.pos.y + ball.size.h >= screen.h - 1 || ball.pos.y <= 1) {
-            velocity.y *= -1;
+            ball_velocity.y *= -1;
         }
 
-        ball.pos = add_points(ball.pos, velocity);
+        ball.pos = add_points(ball.pos, ball_velocity);
         
         delay(1000000 / fps);
         clear_screen();
