@@ -1,6 +1,4 @@
 #include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <termios.h>
 
 void disable_canonical_input() {
@@ -17,7 +15,6 @@ void enable_canonical_input() {
 }
 
 char get_keyboard_input() {
-    struct termios oldt;
     //disable_canonical_input();
     char c = 0;
     read(STDIN_FILENO, &c, 1);

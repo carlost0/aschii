@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "../utils.c"
 #include "../keyboard.c"
+#include "../types.h"
 
 int main() {
     int fps = 25;

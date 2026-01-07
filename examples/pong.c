@@ -1,15 +1,19 @@
 #include <stdio.h>
 #include "../utils.c"
 #include "../keyboard.c"
+#include "../types.h"
 
 int main() {
     int fps = 25;
     char c = 0;
     int score[2] = {48, 48}; 
     int reset = 0;
+    int turn;
+
+    srand(time(NULL));
 
     screen.w = 128;
-    screen.h = 36;
+    screen.h = 32;
 
     object_t ball = {
         .sprite = '@',
@@ -17,7 +21,12 @@ int main() {
         .pos = {64, 18}
     };
 
-    point_t ball_velocity = {1, 1};
+    text_t instruction = {
+        .str = "press w/s to move",
+        .pos = {0, 0}
+    };
+
+    point_t ball_velocity = {((rand() % 2) == 1 ? 1 : -1), ((rand() % 2) == 1 ? 1 : -1)};
     
     object_t paddle_1 = {
         .sprite = '#',
@@ -43,8 +52,10 @@ int main() {
         .pos = {123, 8}
     };
 
-    init_screen(' ');
     disable_canonical_input();
+
+    init_screen(' ');
+
     while (1) {
         put_screen_borders();
         put_object(paddle_1);
@@ -52,9 +63,12 @@ int main() {
         put_object(ball);
         put_object(score_1);
         put_object(score_2);
+        put_text_horizontal(instruction);
     
         score_1.sprite = (char) score[0];
         score_2.sprite = (char) score[1];
+
+        turn = ball_velocity.x;
 
         c = get_keyboard_input();
 
@@ -62,15 +76,15 @@ int main() {
             break;
         }
 
-        if (c == 'w' && paddle_1.pos.y - 1 > 0) {
+        if (c == 'w' && paddle_1.pos.y - 1 > 0 && turn < 0) {
             paddle_1.pos.y--;
-        } else if (c == 's' && paddle_1.pos.y + paddle_1.size.h + 1 < screen.h) {
+        } else if (c == 's' && paddle_1.pos.y + paddle_1.size.h + 1 < screen.h && turn < 0) {
             paddle_1.pos.y++;
         }
         
-        if (c == 'i' && paddle_2.pos.y -  1 > 0) {
+        if (c == 'w' && paddle_2.pos.y -  1 > 0 && turn > 0) {
             paddle_2.pos.y--;
-        } else if (c == 'k' && paddle_2.pos.y + paddle_2.size.h + 1 < screen.h) {
+        } else if (c == 's' && paddle_2.pos.y + paddle_2.size.h + 1 < screen.h && turn > 0) {
             paddle_2.pos.y++;
         }
 
@@ -87,12 +101,16 @@ int main() {
             ball.pos.y = 16;
             paddle_1.pos.y = 12;
             paddle_2.pos.y = 12;
-            ball_velocity.x = 1;
-            ball_velocity.y = 1;
+            ball_velocity.x = rand() % 2 == 1 ? 1 : -1;
+            ball_velocity.y = rand() % 2 == 1 ? 1 : -1;
             reset = 0;
         }
         
-        if (check_collision(paddle_1, ball) == 1 || check_collision(paddle_2, ball) == 1) {
+        if (check_collision(paddle_1, ball)) {
+            ball_velocity.x *= -1;
+        }
+
+        if (check_collision(paddle_2, ball)) {
             ball_velocity.x *= -1;
         }
 
@@ -103,14 +121,15 @@ int main() {
         if (score[0] == 53) {
             clear_screen();
             printf("Player 1 won!");
-            delay(1000);
+            delay(100000);
             break;
         } else if (score[1] == 53) {
             clear_screen();
             printf("Player 2 won!");
-            delay(1000);
+            delay(100000);
             break;
         }
+
         //add velocity vector to position
         ball.pos = add_points(ball.pos, ball_velocity);
         draw_screen();

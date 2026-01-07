@@ -4,7 +4,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include "types.h"
 
+/*
 typedef struct {
     int w, h;
 } box_t;
@@ -30,10 +32,12 @@ typedef struct {
     char sprite;
 } line_t;
 
-struct timespec ts;
 
 char* screen_arr;
 box_t screen;
+*/
+
+struct timespec ts;
 
 point_t add_points(point_t v1, point_t v2) {
     point_t res;

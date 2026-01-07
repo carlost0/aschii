@@ -1,4 +1,5 @@
 #include "../utils.c" 
+#include "../types.h"
 
 int main() {
     screen.w = 32;
@@ -7,7 +8,7 @@ int main() {
     line_t line = {
         .sprite = '#',
         .p1 = {0, 0},
-        .p2 = {32, 16}
+        .p2 = {20, 16}
     };
 
     init_screen(' ');
