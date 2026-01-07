@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include <math.h>
 
 typedef struct {
     int w, h;
@@ -23,6 +24,12 @@ typedef struct {
     point_t pos;
     char * str;
 } text_t;
+
+typedef struct {
+    point_t p1;
+    point_t p2;
+    char sprite;
+} line_t;
 
 struct timespec ts;
 
@@ -99,10 +106,28 @@ void put_object(object_t obj) {
 
 void put_text(text_t text) {
     for (int i = text.pos.x; i < text.pos.x + strlen(text.str); i++) { 
-        if (text.pos.x + strlen(text.str) != NULL) screen_arr[text.pos.y * screen.w + i] = text.str[i - text.pos.x];
+        if (text.pos.x + strlen(text.str) != NULL) {
+            screen_arr[text.pos.y * screen.w + i] = text.str[i - text.pos.x];
+        }
     }
 }
 
+void put_line(line_t line) {
+    //brezenhams line drawing algorithm
+    int dx = abs(line.p2.x - line.p1.x);
+    int dy = abs(line.p2.y - line.p1.y);
+    int sx = (line.p1.x < line.p2.x) ? 1 : -1;
+    int sy = (line.p1.y < line.p2.y) ? 1 : -1;
+    int err = dx - dy;
+
+    while (true) {
+        screen_arr[line.p1.y * screen.w + line.p1.x] = line.sprite;
+        if (line.p1.x == line.p2.x && line.p1.y == line.p2.y) break;
+        int err2 = err * 2;
+        if (err2 > -dy) { err -= dy; line.p1.x += sx; }
+        if (err2 < dx) { err += dx; line.p1.y += sy; }
+}
+}
 // function stolen from https://peerdh.com/blogs/programming-insights/implementing-aabb-collision-detection-algorithms-in-c-for-2d-sprite-based-games-1
 int check_collision(object_t box1, object_t box2) {
     // Check if box1 is to the left of box2
