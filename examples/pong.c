@@ -15,7 +15,7 @@ int main() {
     screen.w = 128;
     screen.h = 32;
 
-    object_t ball = {
+    rectangle_t ball = {
         .sprite = '@',
         .size = {2, 2},
         .pos = {64, 18}
@@ -28,25 +28,25 @@ int main() {
 
     point_t ball_velocity = {((rand() % 2) == 1 ? 1 : -1), ((rand() % 2) == 1 ? 1 : -1)};
     
-    object_t paddle_1 = {
+    rectangle_t paddle_1 = {
         .sprite = '#',
         .size = {1, 8},
         .pos = {2, 12}
     };
 
-    object_t paddle_2 = {
+    rectangle_t paddle_2 = {
         .sprite = '#',
         .size = {1, 8},
         .pos = {125, 12}
     };
     
-    object_t score_1 = {
+    rectangle_t score_1 = {
         .sprite = (char) score[0],
         .size = {1, 1},
         .pos = {4, 8}
     };
 
-    object_t score_2 = {
+    rectangle_t score_2 = {
         .sprite = (char) score[1],
         .size = {1, 1},
         .pos = {123, 8}
@@ -58,11 +58,11 @@ int main() {
 
     while (1) {
         put_screen_borders();
-        put_object(paddle_1);
-        put_object(paddle_2);
-        put_object(ball);
-        put_object(score_1);
-        put_object(score_2);
+        put_rectangle(paddle_1);
+        put_rectangle(paddle_2);
+        put_rectangle(ball);
+        put_rectangle(score_1);
+        put_rectangle(score_2);
         put_text_horizontal(instruction);
     
         score_1.sprite = (char) score[0];

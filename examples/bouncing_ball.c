@@ -9,7 +9,7 @@ int main() {
     screen.w = 128;
     screen.h = 36;
 
-    object_t ball = {
+    rectangle_t ball = {
         .size = {5, 3},
         .pos = {64, 18},
         .sprite = '@'
@@ -26,7 +26,7 @@ int main() {
 
     while (1) {
         put_screen_borders();
-        put_object(ball);
+        put_rectangle(ball);
         draw_screen();
         
         if (ball.pos.x + ball.size.w >= screen.w - 1 || ball.pos.x <= 1) {

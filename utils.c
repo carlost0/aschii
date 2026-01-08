@@ -6,37 +6,6 @@
 #include <time.h>
 #include "types.h"
 
-/*
-typedef struct {
-    int w, h;
-} box_t;
-
-typedef struct {
-    int x, y;
-} point_t;
-
-typedef struct {
-    box_t size;
-    point_t pos;
-    char sprite;
-} object_t;
-
-typedef struct {
-    point_t pos;
-    char * str;
-} text_t;
-
-typedef struct {
-    point_t p1;
-    point_t p2;
-    char sprite;
-} line_t;
-
-
-char* screen_arr;
-box_t screen;
-*/
-
 struct timespec ts;
 
 point_t add_points(point_t v1, point_t v2) {
@@ -95,14 +64,10 @@ void put_screen_borders() {
     screen_arr[(screen.h - 1) * screen.w + screen.w - 1] = '+';
 }
 
-void put_object(object_t obj) {
-    /*
-    1. put point as obj.pos into screen_arr
-    2. extend point by width and height
-    */
-    for (int i = obj.pos.y; i < obj.pos.y + obj.size.h; i++) {
-        for (int j = obj.pos.x; j < obj.pos.x + obj.size.w; j++) {
-            screen_arr[i * screen.w + j] = obj.sprite;
+void put_rectangle(rectangle_t rect) {
+    for (int i = rect.pos.y; i < rect.pos.y + rect.size.h; i++) {
+        for (int j = rect.pos.x; j < rect.pos.x + rect.size.w; j++) {
+            screen_arr[i * screen.w + j] = rect.sprite;
         }
     }
 }
@@ -140,7 +105,7 @@ void put_line(line_t line) {
 }
 }
 // function stolen from https://peerdh.com/blogs/programming-insights/implementing-aabb-collision-detection-algorithms-in-c-for-2d-sprite-based-games-1
-int check_collision(object_t box1, object_t box2) {
+int check_collision(rectangle_t box1, rectangle_t box2) {
     // Check if box1 is to the left of box2
     if (box1.pos.x + box1.size.w < box2.pos.x) return 0;
     // Check if box1 is to the right of box2

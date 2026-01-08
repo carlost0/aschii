@@ -13,7 +13,7 @@ typedef struct {
     box_t size;
     point_t pos;
     char sprite;
-} object_t;
+} rectangle_t;
 
 typedef struct {
     point_t pos;

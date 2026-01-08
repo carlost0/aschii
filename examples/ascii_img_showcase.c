@@ -3,19 +3,19 @@
 #include "../ascii.c"
 
 int main() {
-    screen.w = 474;
-    screen.h = 474;
+    screen.w = 64;
+    screen.h = 64;
 
     ascii_object img = {
         .pos = {0, 0},
-        .size = {474, 474},
+        .size = {64, 64},
         .sprite = {}
     };
 
     init_screen(' ');
-    
+
     //replace path with path to your image
-    img_to_ascii("/home/carlos/Pictures/arch_logo.bmp", &img);
+    img_to_ascii("/home/carlos/Pictures/test.bmp", &img);
     put_img(img);
     put_screen_borders();
 
