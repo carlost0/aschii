@@ -89,7 +89,7 @@ void put_text_vertical(text_t text) {
 }
 
 void put_line(line_t line) {
-    //brezenhams line drawing algorithm
+    //bresenhams line drawing algorithm
     int dx = abs(line.p2.x - line.p1.x);
     int dy = abs(line.p2.y - line.p1.y);
     int sx = (line.p1.x < line.p2.x) ? 1 : -1;
@@ -102,7 +102,11 @@ void put_line(line_t line) {
         int err2 = err * 2;
         if (err2 > -dy) { err -= dy; line.p1.x += sx; }
         if (err2 < dx) { err += dx; line.p1.y += sy; }
+    }
 }
+
+void put_point(point_t pos, char sprite) {
+    screen_arr[pos.y * screen.w + pos.x] = sprite;
 }
 // function stolen from https://peerdh.com/blogs/programming-insights/implementing-aabb-collision-detection-algorithms-in-c-for-2d-sprite-based-games-1
 int check_collision(rectangle_t box1, rectangle_t box2) {
