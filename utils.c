@@ -23,6 +23,7 @@ void delay(int ms) {
 void init_screen(char c) {
     // FREE LATER!!!!
     screen_arr = (char *) malloc((screen.w * screen.h) * sizeof(char));
+    if (screen_arr == NULL) {perror("failed to allocate screen memory"); return;}
     memset(screen_arr, c, screen.w * screen.h);
 }
 
@@ -108,6 +109,34 @@ void put_line(line_t line) {
 void put_point(point_t pos, char sprite) {
     screen_arr[pos.y * screen.w + pos.x] = sprite;
 }
+
+// thanks to https://www.youtube.com/@nobs_code for explaining this algorithm in https://www.youtube.com/watch?v=hpiILbMkF9w
+void put_circle(circle_t circle) {
+    int x = 0;
+    int y = circle.radius;
+    int p = 1 - circle.radius;
+
+    while (x <= y) {
+        screen_arr[(circle.pos.y + y) * screen.w + (circle.pos.x + x)] = circle.sprite;
+        screen_arr[(circle.pos.y + y) * screen.w + (circle.pos.x - x)] = circle.sprite;
+        screen_arr[(circle.pos.y - y) * screen.w + (circle.pos.x + x)] = circle.sprite;
+        screen_arr[(circle.pos.y - y) * screen.w + (circle.pos.x - x)] = circle.sprite;
+        screen_arr[(circle.pos.y + x) * screen.w + (circle.pos.x + y)] = circle.sprite;
+        screen_arr[(circle.pos.y + x) * screen.w + (circle.pos.x - y)] = circle.sprite;
+        screen_arr[(circle.pos.y - x) * screen.w + (circle.pos.x + y)] = circle.sprite;
+        screen_arr[(circle.pos.y - x) * screen.w + (circle.pos.x - y)] = circle.sprite;
+
+        x++;
+
+        if (p < 0) {
+            p += 2 * x + 1;
+        } else {
+            y--;
+            p += 2 * (x - y) + 1;
+        }
+    }
+}
+
 // function stolen from https://peerdh.com/blogs/programming-insights/implementing-aabb-collision-detection-algorithms-in-c-for-2d-sprite-based-games-1
 int check_collision(rectangle_t box1, rectangle_t box2) {
     // Check if box1 is to the left of box2

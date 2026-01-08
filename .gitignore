@@ -2,5 +2,7 @@ bouncing_ball
 pong
 text
 line
+circle
+rect
 .ccls-cache/
 .ccls-cache/**

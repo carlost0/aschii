@@ -26,14 +26,14 @@ static const char chars[71] =  {'$', '@', 'B', '%', '8', '&',
 void img_to_ascii(char * img_path, ascii_object * ascii) {
     BMP * bmp = bopen(img_path);
     if (bmp == NULL) {
-        printf("failed to open image");
+        perror("failed to open image");
         return;
     }
 
     char * res = (char *) malloc(ascii->size.w * ascii->size.h * sizeof(char));
     if (res == NULL) {
         bclose(bmp);
-        printf("failed to allocate memory for image to ascii conversion");
+        perror("failed to allocate memory for image to ascii conversion");
         return;
     }
 

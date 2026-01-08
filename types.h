@@ -17,14 +17,20 @@ typedef struct {
 
 typedef struct {
     point_t pos;
-    char * str;
-} text_t;
+    int radius;
+    char sprite;
+} circle_t;
 
 typedef struct {
     point_t p1;
     point_t p2;
     char sprite;
 } line_t;
+
+typedef struct {
+    point_t pos;
+    char * str;
+} text_t;
 
 char* screen_arr;
 box_t screen;
