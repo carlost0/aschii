@@ -1,7 +1,8 @@
+#include <stdlib.h>
+#include <time.h>
 #include <stdio.h>
-#include "../utils.c"
+#include "../utils.h"
 #include "../keyboard.c"
-#include "../types.h"
 
 int main() {
     int fps = 25;
@@ -12,8 +13,10 @@ int main() {
 
     srand(time(NULL));
 
-    screen.w = 128;
-    screen.h = 32;
+    scene_t scene = {
+        .size = {128, 36},
+        .screen = {}
+    };
 
     rectangle_t ball = {
         .sprite = '@',
@@ -54,16 +57,16 @@ int main() {
 
     disable_canonical_input();
 
-    init_screen(' ');
+    init_scene(&scene, ' ');
 
     while (1) {
-        put_screen_borders();
-        put_rectangle(paddle_1);
-        put_rectangle(paddle_2);
-        put_rectangle(ball);
-        put_rectangle(score_1);
-        put_rectangle(score_2);
-        put_text_horizontal(instruction);
+        put_screen_borders(&scene);
+        put_rectangle(&scene, paddle_1);
+        put_rectangle(&scene, paddle_2);
+        put_rectangle(&scene, ball);
+        put_rectangle(&scene, score_1);
+        put_rectangle(&scene, score_2);
+        put_text_horizontal(&scene, instruction);
     
         score_1.sprite = (char) score[0];
         score_2.sprite = (char) score[1];
@@ -78,17 +81,17 @@ int main() {
 
         if (c == 'w' && paddle_1.pos.y - 1 > 0 && turn < 0) {
             paddle_1.pos.y--;
-        } else if (c == 's' && paddle_1.pos.y + paddle_1.size.h + 1 < screen.h && turn < 0) {
+        } else if (c == 's' && paddle_1.pos.y + paddle_1.size.h + 1 < scene.size.h && turn < 0) {
             paddle_1.pos.y++;
         }
         
         if (c == 'w' && paddle_2.pos.y -  1 > 0 && turn > 0) {
             paddle_2.pos.y--;
-        } else if (c == 's' && paddle_2.pos.y + paddle_2.size.h + 1 < screen.h && turn > 0) {
+        } else if (c == 's' && paddle_2.pos.y + paddle_2.size.h + 1 < scene.size.h && turn > 0) {
             paddle_2.pos.y++;
         }
 
-        if (ball.pos.x + ball.size.w >= screen.w - 1) {
+        if (ball.pos.x + ball.size.w >= scene.size.h - 1) {
             reset = 1;
             score[0] += 1;
         } else if (ball.pos.x <= 1) {
@@ -114,17 +117,17 @@ int main() {
             ball_velocity.x *= -1;
         }
 
-        if (ball.pos.y + ball.size.h >= screen.h - 1 || ball.pos.y <= 1) {
+        if (ball.pos.y + ball.size.h >= scene.size.h - 1 || ball.pos.y <= 1) {
             ball_velocity.y *= -1;
         }
         
         if (score[0] == 53) {
-            clear_screen();
+            clear_scene(&scene);
             printf("Player 1 won!");
             delay(100000);
             break;
         } else if (score[1] == 53) {
-            clear_screen();
+            clear_scene(&scene);
             printf("Player 2 won!");
             delay(100000);
             break;
@@ -132,12 +135,12 @@ int main() {
 
         //add velocity vector to position
         ball.pos = add_points(ball.pos, ball_velocity);
-        draw_screen();
-        clear_screen();
+        draw_scene(&scene);
+        clear_scene(&scene);
         delay(1000000 / fps);
     }
 
     enable_canonical_input();
-    free(screen_arr);
-    screen_arr = NULL;
+    free(scene.screen);
+    scene.screen = NULL;
 }

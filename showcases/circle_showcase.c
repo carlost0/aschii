@@ -1,9 +1,11 @@
-#include "../types.h"
-#include "../utils.c"
+#include <stdlib.h>
+#include "../utils.h"
 
 int main() {
-    screen.w = 128;
-    screen.h = 128;
+    scene_t main_scene = {
+        .size = {128, 128},
+        .screen = {}
+    };
 
     circle_t circle = {
         .sprite = '#',
@@ -11,13 +13,13 @@ int main() {
         .pos = {64, 64}
     };
 
-    init_screen(' ');
+    init_scene(&main_scene, ' ');
 
-    put_circle(circle);
+    put_circle(&main_scene, circle);
     
-    draw_screen();
-    free(screen_arr);
-    screen_arr = NULL;
+    draw_scene(&main_scene);
+    free(main_scene.screen);
+    main_scene.screen = NULL;
 
     return 0;
 }

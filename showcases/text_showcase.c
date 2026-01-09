@@ -1,11 +1,11 @@
 #include <stdlib.h>
-#include "../utils.c"
-#include "../keyboard.c"
-#include "../types.h"
+#include "../utils.h"
 
 int main() {
-    screen.w = 32;
-    screen.h = 16;
+    scene_t main_scene = {
+        .size = {32, 32},
+        .screen = {}
+    };
 
     text_t text_horizontal = {
         .pos = {10, 0},
@@ -17,12 +17,12 @@ int main() {
         .str = "i'm vertical!"
     };
 
-    init_screen(' ');
-    put_text_horizontal(text_horizontal);
-    put_text_vertical(text_vertical);
-    draw_screen();
-    free(screen_arr);
-    screen_arr = NULL;
+    init_scene(&main_scene, ' ');
+    put_text_horizontal(&main_scene, text_horizontal);
+    put_text_vertical(&main_scene, text_vertical);
+    draw_scene(&main_scene);
+    free(main_scene.screen);
+    main_scene.screen = NULL;
     return 0;
 }
 

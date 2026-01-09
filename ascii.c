@@ -1,14 +1,7 @@
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "types.h"
+#include "utils.h"
 #include "lib/cbmp.h"
-
-typedef struct {
-    box_t size;
-    point_t pos;
-    char * sprite;
-} ascii_object;
 
 static const char chars[71] =  {'$', '@', 'B', '%', '8', '&',
                                 'W', 'M', '#', '*', 'o', 'a',
@@ -23,7 +16,7 @@ static const char chars[71] =  {'$', '@', 'B', '%', '8', '&',
                                 'I', ';', ':', ',', '"', '^',
                                 '`', '\'', '.', ' '};
 
-void img_to_ascii(char * img_path, ascii_object * ascii) {
+void img_to_ascii(char * img_path, ascii_object_t * ascii) {
     BMP * bmp = bopen(img_path);
     if (bmp == NULL) {
         perror("failed to open image");
@@ -57,13 +50,13 @@ void img_to_ascii(char * img_path, ascii_object * ascii) {
     bclose(bmp); // Close BMP file
 }
 
-void put_img(ascii_object ascii) {
+void put_img(scene_t *scene, ascii_object_t ascii) {
     for (int i = 0; i < ascii.size.h; i++) {
         for (int j = 0; j < ascii.size.w; j++) {
-            int screenX = ascii.pos.x + j;
-            int screenY = ascii.pos.y + i;
-            if (screenX < screen.w && screenY < screen.h) { // Boundary check
-                screen_arr[screenY * screen.w + screenX] = ascii.sprite[i * ascii.size.w + j];
+            int screen_x = ascii.pos.x + j;
+            int screen_y = ascii.pos.y + i;
+            if (screen_x < scene->size.w && screen_y < scene->size.h) { // Boundary check
+                scene->screen[screen_y * scene->size.w + screen_x] = ascii.sprite[i * ascii.size.w + j];
             }
         }
     }

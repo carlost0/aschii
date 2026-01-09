@@ -1,13 +1,14 @@
 #include <stdlib.h>
-#include "../utils.c"
+#include "../utils.h"
 #include "../keyboard.c"
-#include "../types.h"
 
 int main() {
     int fps = 25;
 
-    screen.w = 128;
-    screen.h = 36;
+    scene_t scene = {
+        .size = {128, 36},
+        .screen = {}
+    };
 
     rectangle_t ball = {
         .size = {5, 3},
@@ -17,30 +18,30 @@ int main() {
     
     point_t ball_velocity = {2, 1};
     
-    if (screen_arr != NULL) {
-        free(screen_arr);
-        screen_arr = NULL;
+    if (scene.screen != NULL) {
+        free(scene.screen);
+        scene.screen = NULL;
     }
 
-    init_screen(' ');
+    init_scene(&scene, ' ');
 
     while (1) {
-        put_screen_borders();
-        put_rectangle(ball);
-        draw_screen();
+        put_screen_borders(&scene);
+        put_rectangle(&scene, ball);
+        draw_scene(&scene);
         
-        if (ball.pos.x + ball.size.w >= screen.w - 1 || ball.pos.x <= 1) {
+        if (ball.pos.x + ball.size.w >= scene.size.w - 1 || ball.pos.x <= 1) {
             ball_velocity.x *= -1;
         }
 
-        if (ball.pos.y + ball.size.h >= screen.h - 1 || ball.pos.y <= 1) {
+        if (ball.pos.y + ball.size.h >= scene.size.h - 1 || ball.pos.y <= 1) {
             ball_velocity.y *= -1;
         }
 
         ball.pos = add_points(ball.pos, ball_velocity);
         
         delay(1000000 / fps);
-        clear_screen();
+        clear_scene(&scene);
     }
     return 0;
 }

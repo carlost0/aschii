@@ -1,12 +1,26 @@
+#include "utils.h"
+#include "lib/cbmp.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
-#include "types.h"
 
 struct timespec ts;
+
+char ascii_chars[71] =  {'$', '@', 'B', '%', '8', '&',
+                'W', 'M', '#', '*', 'o', 'a',
+                'h', 'k', 'b', 'd', 'p', 'q',
+                'w', 'm', 'Z', 'O', '0', 'Q',
+                'L', 'C', 'J', 'U', 'Y', 'X',
+                'z', 'c', 'v', 'u', 'n', 'x',
+                'r', 'j', 'f', 't', '/', '\\',
+                '|', '(', ')', '1', '{', '}',
+                '[', ']', '?', '-', '_', '+',
+                '~', '<', '>', 'i', '!', 'l',
+                'I', ';', ':', ',', '"', '^',
+                '`', '\'', '.', ' '};
 
 point_t add_points(point_t v1, point_t v2) {
     point_t res;
@@ -20,76 +34,83 @@ void delay(int ms) {
     ts.tv_nsec = ms * 1000;
     nanosleep(&ts, NULL); //lsp might give error, compile with -D_POSIX_C_SOURCE=200809L
 }
-void init_screen(char c) {
+
+void init_scene(scene_t *scene, char c) {
     // FREE LATER!!!!
-    screen_arr = (char *) malloc((screen.w * screen.h) * sizeof(char));
-    if (screen_arr == NULL) {perror("failed to allocate screen memory"); return;}
-    memset(screen_arr, c, screen.w * screen.h);
+    scene->screen = (char *) malloc((scene->size.w * scene->size.h) * sizeof(char));
+    if (scene->screen == NULL) {perror("failed to allocate screen memory"); return;}
+    memset(scene->screen, c, scene->size.w * scene->size.h);
 }
 
-void clear_screen() {
+void clear_scene(scene_t *scene) {
     //remove line to get rid of flickering, can cause wierd scrolling
     printf("\e[1;1H\e[2J");
-    memset(screen_arr, ' ', screen.w * screen.h);
+    memset(scene->screen, ' ', scene->size.w * scene->size.h);
 
 }
-void draw_screen() {
-    if (screen_arr == NULL) return;
+void draw_scene(scene_t *scene) {
+    if (scene->screen == NULL) return;
 
-    for (int i = 0; i < screen.h; i++) {
-        for (int j = 0; j < screen.w; j++) {
-            printf("%c", screen_arr[i * screen.w + j]);
+    for (int i = 0; i < scene->size.h; i++) {
+        for (int j = 0; j < scene->size.h; j++) {
+            printf("%c", scene->screen[i * scene->size.w + j]);
         }
         printf("\n");
     }
 }
 
 // Function optimized by duck.ai using Mistrall Small 3
-void put_screen_borders() {
+void put_screen_borders(scene_t *scene) {
     // Draw the top and bottom borders
-    for (int j = 0; j < screen.w; j++) {
-        screen_arr[j] = '-';
-        screen_arr[(screen.h - 1) * screen.w + j] = '-';
+    for (int j = 0; j < scene->size.w; j++) {
+        scene->screen[j] = '-';
+        scene->screen[(scene->size.h - 1) * scene->size.w + j] = '-';
     }
 
     // Draw the left and right borders
+    /*
     for (int i = 1; i < screen.h - 1; i++) {
-        screen_arr[i * screen.w] = '|';
-        screen_arr[i * screen.w + screen.w - 1] = '|';
+        scene->screen[i * scene.size.w] = '|';
+        scene->screen[i * scene.size.w + screen.w - 1] = '|';
+    }
+    */
+    for (int i = 1; i < scene->size.h - 1; i++) {
+        scene->screen[i * scene->size.w] = '|';
+        scene->screen[i * scene->size.w + scene->size.w - 1] = '|';
     }
 
     // Place the corners
-    screen_arr[0] = '+';
-    screen_arr[screen.w - 1] = '+';
-    screen_arr[(screen.h - 1) * screen.w] = '+';
-    screen_arr[(screen.h - 1) * screen.w + screen.w - 1] = '+';
+    scene->screen[0] = '+';
+    scene->screen[scene->size.w - 1] = '+';
+    scene->screen[(scene->size.h - 1) * scene->size.w] = '+';
+    scene->screen[(scene->size.h - 1) * scene->size.w + scene->size.w - 1] = '+';
 }
 
-void put_rectangle(rectangle_t rect) {
+void put_rectangle(scene_t *scene, rectangle_t rect) {
     for (int i = rect.pos.y; i < rect.pos.y + rect.size.h; i++) {
         for (int j = rect.pos.x; j < rect.pos.x + rect.size.w; j++) {
-            screen_arr[i * screen.w + j] = rect.sprite;
+            scene->screen[i * scene->size.w + j] = rect.sprite;
         }
     }
 }
 
-void put_text_horizontal(text_t text) {
+void put_text_horizontal(scene_t *scene, text_t text) {
     for (int i = text.pos.x; i < text.pos.x + strlen(text.str); i++) { 
         if (text.pos.x + strlen(text.str) != NULL) {
-            screen_arr[text.pos.y * screen.w + i] = text.str[i - text.pos.x];
+            scene->screen[text.pos.y * scene->size.w + i] = text.str[i - text.pos.x];
         }
     }
 }
 
-void put_text_vertical(text_t text) {
+void put_text_vertical(scene_t *scene, text_t text) {
     for (int i = text.pos.y; i < text.pos.y + strlen(text.str); i++) { 
         if (text.pos.y + strlen(text.str) != NULL) {
-            screen_arr[i * screen.w + text.pos.x] = text.str[i - text.pos.y];
+            scene->screen[i * scene->size.w + text.pos.x] = text.str[i - text.pos.y];
         }
     }
 }
 
-void put_line(line_t line) {
+void put_line(scene_t *scene, line_t line) {
     //bresenhams line drawing algorithm
     int dx = abs(line.p2.x - line.p1.x);
     int dy = abs(line.p2.y - line.p1.y);
@@ -98,7 +119,7 @@ void put_line(line_t line) {
     int err = dx - dy;
 
     while (true) {
-        screen_arr[line.p1.y * screen.w + line.p1.x] = line.sprite;
+        scene->screen[line.p1.y * scene->size.w + line.p1.x] = line.sprite;
         if (line.p1.x == line.p2.x && line.p1.y == line.p2.y) break;
         int err2 = err * 2;
         if (err2 > -dy) { err -= dy; line.p1.x += sx; }
@@ -106,25 +127,25 @@ void put_line(line_t line) {
     }
 }
 
-void put_point(point_t pos, char sprite) {
-    screen_arr[pos.y * screen.w + pos.x] = sprite;
+void put_point(scene_t *scene, point_t pos, char sprite) {
+    scene->screen[pos.y * scene->size.w + pos.x] = sprite;
 }
 
 // thanks to https://www.youtube.com/@nobs_code for explaining this algorithm in https://www.youtube.com/watch?v=hpiILbMkF9w
-void put_circle(circle_t circle) {
+void put_circle(scene_t *scene, circle_t circle) {
     int x = 0;
     int y = circle.radius;
     int p = 1 - circle.radius;
 
     while (x <= y) {
-        screen_arr[(circle.pos.y + y) * screen.w + (circle.pos.x + x)] = circle.sprite;
-        screen_arr[(circle.pos.y + y) * screen.w + (circle.pos.x - x)] = circle.sprite;
-        screen_arr[(circle.pos.y - y) * screen.w + (circle.pos.x + x)] = circle.sprite;
-        screen_arr[(circle.pos.y - y) * screen.w + (circle.pos.x - x)] = circle.sprite;
-        screen_arr[(circle.pos.y + x) * screen.w + (circle.pos.x + y)] = circle.sprite;
-        screen_arr[(circle.pos.y + x) * screen.w + (circle.pos.x - y)] = circle.sprite;
-        screen_arr[(circle.pos.y - x) * screen.w + (circle.pos.x + y)] = circle.sprite;
-        screen_arr[(circle.pos.y - x) * screen.w + (circle.pos.x - y)] = circle.sprite;
+        scene->screen[(circle.pos.y + y) * scene->size.w + (circle.pos.x + x)] = circle.sprite;
+        scene->screen[(circle.pos.y + y) * scene->size.w + (circle.pos.x - x)] = circle.sprite;
+        scene->screen[(circle.pos.y - y) * scene->size.w + (circle.pos.x + x)] = circle.sprite;
+        scene->screen[(circle.pos.y - y) * scene->size.w + (circle.pos.x - x)] = circle.sprite;
+        scene->screen[(circle.pos.y + x) * scene->size.w + (circle.pos.x + y)] = circle.sprite;
+        scene->screen[(circle.pos.y + x) * scene->size.w + (circle.pos.x - y)] = circle.sprite;
+        scene->screen[(circle.pos.y - x) * scene->size.w + (circle.pos.x + y)] = circle.sprite;
+        scene->screen[(circle.pos.y - x) * scene->size.w + (circle.pos.x - y)] = circle.sprite;
 
         x++;
 
@@ -136,6 +157,54 @@ void put_circle(circle_t circle) {
         }
     }
 }
+
+void img_to_ascii(char * img_path, img_object_t * ascii) {
+    BMP * bmp = bopen(img_path);
+    if (bmp == NULL) {
+        perror("failed to open image");
+        return;
+    }
+
+    char * res = (char *) malloc(ascii->size.w * ascii->size.h * sizeof(char));
+    if (res == NULL) {
+        bclose(bmp);
+        perror("failed to allocate memory for image to ascii conversion");
+        return;
+    }
+
+    unsigned char r, g, b;
+    unsigned int width = get_width(bmp);
+    unsigned int height = get_height(bmp);
+    
+    for (unsigned int x = 0; x < width && x < ascii->size.w; x++) {
+        for (unsigned int y = 0; y < height && y < ascii->size.h; y++) {
+            get_pixel_rgb(bmp, x, y, &r, &g, &b);
+            double brightness = 0.3 * r + 0.59 * g + 0.11 * b;
+            int index = (int)(70.0 / 255.0 * brightness);
+            if (index >= 70) {
+                index = 69; // Clamp index to prevent overflow
+            }
+            res[ascii->size.w * ascii->size.w - (y * ascii->size.w + x)] = ascii_chars[index];
+        }
+    }
+
+    ascii->sprite = res;
+    bclose(bmp); // Close BMP file
+}
+
+void put_img(scene_t *scene, img_object_t ascii) {
+    for (int i = 0; i < ascii.size.h; i++) {
+        for (int j = 0; j < ascii.size.w; j++) {
+            int screen_x = ascii.pos.x + j;
+            int screen_y = ascii.pos.y + i;
+            if (screen_x < scene->size.w && screen_y < scene->size.h) { // Boundary check
+                scene->screen[screen_y * scene->size.w + screen_x] = ascii.sprite[i * ascii.size.w + j];
+            }
+        }
+    }
+}
+
+
 
 // function stolen from https://peerdh.com/blogs/programming-insights/implementing-aabb-collision-detection-algorithms-in-c-for-2d-sprite-based-games-1
 int check_collision(rectangle_t box1, rectangle_t box2) {

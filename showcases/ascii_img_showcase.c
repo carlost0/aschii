@@ -1,25 +1,26 @@
-#include "../types.h"
-#include "../utils.c"
-#include "../ascii.c"
+#include "../utils.h"
+#include <stdlib.h>
+//#include "../ascii.c"
 
 int main() {
-    screen.w = 64;
-    screen.h = 64;
+    scene_t main_scene = {
+        .screen = {},
+        .size = {200, 242}
+    };
 
-    ascii_object img = {
+    img_object_t img = {
         .pos = {0, 0},
-        .size = {64, 64},
+        .size = {200, 242},
         .sprite = {}
     };
 
-    init_screen(' ');
+    init_scene(&main_scene, ' ');
 
     //replace path with path to your image
-    img_to_ascii("/home/carlos/Pictures/test.bmp", &img);
-    put_img(img);
-    put_screen_borders();
+    img_to_ascii("/home/carlos/Pictures/thinkpad.bmp", &img);
+    put_img(&main_scene, img);
 
-    draw_screen();
-    free(screen_arr);
-    screen_arr = NULL;
+    draw_scene(&main_scene);
+    free(main_scene.screen);
+    main_scene.screen = NULL;
 }
