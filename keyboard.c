@@ -1,8 +1,12 @@
 #include <unistd.h>
 #include <termios.h>
+#include "keyboard.h"
+
+struct termios oldt;
+char kb_input = 0;
 
 void disable_canonical_input() {
-    struct termios oldt, newt;
+    struct termios newt;
     tcgetattr(STDIN_FILENO, &oldt);      // get current terminal settings
     newt = oldt;
     newt.c_lflag &= ~(ICANON | ECHO);    // disable canonical mode & echo
@@ -10,41 +14,13 @@ void disable_canonical_input() {
 }
 
 void enable_canonical_input() {
-    struct termios oldt;
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);  // restore old setting
 }
 
-char get_keyboard_input() {
-    //disable_canonical_input();
-    char c = 0;
-    read(STDIN_FILENO, &c, 1);
-    //enable_canonical_input(&oldt);
-    return c;
+void* get_keyboard_input(void *arg) {
+    //disable_canonical_input();  // Enable non-canonical mode
+    read(STDIN_FILENO, &kb_input, 1);  // Read one character
+    //enable_canonical_input();    // Restore canonical mode
+    return NULL;
 }
 
-/*
-int main(void) {
-    disable_canonical_input();
-    char c = 0;
-    while (1) {
-        c = 0;
-        read(STDIN_FILENO, &c, 1);
-        if (c == '1') {
-            enable_canonical_input();
-            printf("12");
-            disable_canonical_input();
-        }
-        if (c == 'q') {
-            break;
-        }
-    }
-    char c = 0;
-    while (1) {
-        c = get_keyboard_input();
-        if (c == 'q') break;
-    }
-    printf("%c", c);
-    printf("hello, world");
-    return 0;
-}
-*/

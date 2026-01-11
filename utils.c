@@ -52,7 +52,7 @@ void draw_scene(scene_t *scene) {
     if (scene->screen == NULL) return;
 
     for (int i = 0; i < scene->size.h; i++) {
-        for (int j = 0; j < scene->size.h; j++) {
+        for (int j = 0; j < scene->size.w; j++) {
             printf("%c", scene->screen[i * scene->size.w + j]);
         }
         printf("\n");

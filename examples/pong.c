@@ -1,21 +1,21 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
+#include <pthread.h>
 #include "../utils.h"
-#include "../keyboard.c"
+#include "../keyboard.h"
 
 int main() {
+    INIT_INPUT
     int fps = 25;
-    char c = 0;
     int score[2] = {48, 48}; 
     int reset = 0;
     int turn;
 
-    srand(time(NULL));
+    srand(time(0));
 
     scene_t scene = {
         .size = {128, 36},
-        .screen = {}
     };
 
     rectangle_t ball = {
@@ -55,11 +55,11 @@ int main() {
         .pos = {123, 8}
     };
 
-    disable_canonical_input();
 
     init_scene(&scene, ' ');
+    while (input != 'q') {
+        GET_INPUT
 
-    while (1) {
         put_screen_borders(&scene);
         put_rectangle(&scene, paddle_1);
         put_rectangle(&scene, paddle_2);
@@ -73,32 +73,27 @@ int main() {
 
         turn = ball_velocity.x;
 
-        c = get_keyboard_input();
-
-        if (c == 'q') {
-            break;
+        switch (input) {
+            case 'w':
+                if (turn < 0 && paddle_1.pos.y - 1 > 0) paddle_1.pos.y--;
+                if (turn > 0 && paddle_2.pos.y - 1 > 0) paddle_2.pos.y--;
+                break;
+            case 's':
+                if (paddle_1.pos.y + paddle_1.size.h + 1 < scene.size.h && turn < 0) paddle_1.pos.y++;
+                if (paddle_2.pos.y + paddle_2.size.h + 1 < scene.size.h && turn > 0) paddle_2.pos.y++;
+                break;
+            default:
+                break;
         }
 
-        if (c == 'w' && paddle_1.pos.y - 1 > 0 && turn < 0) {
-            paddle_1.pos.y--;
-        } else if (c == 's' && paddle_1.pos.y + paddle_1.size.h + 1 < scene.size.h && turn < 0) {
-            paddle_1.pos.y++;
-        }
-        
-        if (c == 'w' && paddle_2.pos.y -  1 > 0 && turn > 0) {
-            paddle_2.pos.y--;
-        } else if (c == 's' && paddle_2.pos.y + paddle_2.size.h + 1 < scene.size.h && turn > 0) {
-            paddle_2.pos.y++;
-        }
-
-        if (ball.pos.x + ball.size.w >= scene.size.h - 1) {
+        if (ball.pos.x + ball.size.w >= scene.size.w - 1) {
             reset = 1;
             score[0] += 1;
         } else if (ball.pos.x <= 1) {
             reset = 1;
             score[1] += 1;
         }
-        
+
         if (reset == 1) {
             ball.pos.x = 62;
             ball.pos.y = 16;
@@ -140,7 +135,8 @@ int main() {
         delay(1000000 / fps);
     }
 
-    enable_canonical_input();
+
+    END_INPUT
     free(scene.screen);
     scene.screen = NULL;
 }
