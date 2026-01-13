@@ -5,8 +5,8 @@ simple c framework for ascii gamedevelopment on linux
 #### types
 types are defined in the `lib/utils.h` file, i recommend you checking it out
 #### understanding `scene_t`:
-    - `scene.screen` is a one dimensional array of type `char *`
-    - to access a point at `x = 10, y = 3` you'd do: `scene.screen[y * scene.screen.w + x]...`
+- `scene.screen` is a one-dimensional array of type `char *`.
+- To access a point at `x = 10, y = 3`, you would do: `scene.screen[y * scene.screen.w + x];`
 #### functions
 functions are declared and commented in `lib/utils.h`
 ### `lib/keyboard.h`
