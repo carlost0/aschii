@@ -2,8 +2,8 @@
 #include <time.h>
 #include <stdio.h>
 #include <pthread.h>
-#include "../utils.h"
-#include "../keyboard.h"
+#include "../lib/utils.h"
+#include "../lib/keyboard.h"
 
 typedef enum {
     ONE_P,
@@ -79,18 +79,18 @@ selection start_screen() {
     INIT_INPUT
 
     while (1) {
-        put_screen_borders(&select_scene);
-        put_rectangle(&select_scene, background);
-        put_rectangle(&select_scene, cursor);
-        put_text_horizontal(&select_scene, quit);
-        put_text_horizontal(&select_scene, one_player);
-        put_text_horizontal(&select_scene, two_player);
-        put_text_horizontal(&select_scene, title);
-        put_line(&select_scene, outline_1);
-        put_line(&select_scene, outline_2);
-        put_line(&select_scene, outline_3);
-        put_line(&select_scene, outline_4);
-        draw_scene(&select_scene);
+        draw_screen_borders(&select_scene);
+        draw_rectangle(&select_scene, background);
+        draw_rectangle(&select_scene, cursor);
+        draw_text_horizontal(&select_scene, quit);
+        draw_text_horizontal(&select_scene, one_player);
+        draw_text_horizontal(&select_scene, two_player);
+        draw_text_horizontal(&select_scene, title);
+        draw_line(&select_scene, outline_1);
+        draw_line(&select_scene, outline_2);
+        draw_line(&select_scene, outline_3);
+        draw_line(&select_scene, outline_4);
+        print_scene(&select_scene);
 
         GET_INPUT
 
@@ -164,17 +164,17 @@ void one_player_mode() {
     };
 
 
-    init_scene(&scene, ' ');
+    init_scene(&scene);
     while (input != 'q') {
         GET_INPUT
 
-        put_screen_borders(&scene);
-        put_rectangle(&scene, paddle_1);
-        put_rectangle(&scene, paddle_2);
-        put_rectangle(&scene, ball);
-        put_rectangle(&scene, score_1);
-        put_rectangle(&scene, score_2);
-        put_text_horizontal(&scene, instruction);
+        draw_screen_borders(&scene);
+        draw_rectangle(&scene, paddle_1);
+        draw_rectangle(&scene, paddle_2);
+        draw_rectangle(&scene, ball);
+        draw_rectangle(&scene, score_1);
+        draw_rectangle(&scene, score_2);
+        draw_text_horizontal(&scene, instruction);
     
         score_1.sprite = (char) score[0];
         score_2.sprite = (char) score[1];
@@ -238,7 +238,7 @@ void one_player_mode() {
 
         //add velocity vector to position
         ball.pos = add_points(ball.pos, ball_velocity);
-        draw_scene(&scene);
+        print_scene(&scene);
         clear_scene(&scene);
         delay(1000000 / fps);
     }
@@ -300,17 +300,17 @@ void two_player_mode() {
     };
 
 
-    init_scene(&scene, ' ');
+    init_scene(&scene);
     while (input != 'q') {
         GET_INPUT
 
-        put_screen_borders(&scene);
-        put_rectangle(&scene, paddle_1);
-        put_rectangle(&scene, paddle_2);
-        put_rectangle(&scene, ball);
-        put_rectangle(&scene, score_1);
-        put_rectangle(&scene, score_2);
-        put_text_horizontal(&scene, instruction);
+        draw_screen_borders(&scene);
+        draw_rectangle(&scene, paddle_1);
+        draw_rectangle(&scene, paddle_2);
+        draw_rectangle(&scene, ball);
+        draw_rectangle(&scene, score_1);
+        draw_rectangle(&scene, score_2);
+        draw_text_horizontal(&scene, instruction);
     
         score_1.sprite = (char) score[0];
         score_2.sprite = (char) score[1];
@@ -378,7 +378,7 @@ void two_player_mode() {
 
         //add velocity vector to position
         ball.pos = add_points(ball.pos, ball_velocity);
-        draw_scene(&scene);
+        print_scene(&scene);
         clear_scene(&scene);
         delay(1000000 / fps);
     }

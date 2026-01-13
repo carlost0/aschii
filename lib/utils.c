@@ -1,5 +1,5 @@
 #include "utils.h"
-#include "lib/cbmp.h"
+#include "../include/cbmp.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -35,11 +35,11 @@ void delay(int ms) {
     nanosleep(&ts, NULL); //lsp might give error, compile with -D_POSIX_C_SOURCE=200809L
 }
 
-void init_scene(scene_t *scene, char c) {
+void init_scene(scene_t *scene) {
     // FREE LATER!!!!
     scene->screen = (char *) malloc((scene->size.w * scene->size.h) * sizeof(char));
     if (scene->screen == NULL) {perror("failed to allocate screen memory"); return;}
-    memset(scene->screen, c, scene->size.w * scene->size.h);
+    memset(scene->screen, ' ', scene->size.w * scene->size.h);
 }
 
 void clear_scene(scene_t *scene) {
@@ -48,7 +48,7 @@ void clear_scene(scene_t *scene) {
     memset(scene->screen, ' ', scene->size.w * scene->size.h);
 
 }
-void draw_scene(scene_t *scene) {
+void print_scene(scene_t *scene) {
     if (scene->screen == NULL) return;
 
     for (int i = 0; i < scene->size.h; i++) {
@@ -60,7 +60,7 @@ void draw_scene(scene_t *scene) {
 }
 
 // Function optimized by duck.ai using Mistrall Small 3
-void put_screen_borders(scene_t *scene) {
+void draw_screen_borders(scene_t *scene) {
     // Draw the top and bottom borders
     for (int j = 0; j < scene->size.w; j++) {
         scene->screen[j] = '-';
@@ -86,7 +86,7 @@ void put_screen_borders(scene_t *scene) {
     scene->screen[(scene->size.h - 1) * scene->size.w + scene->size.w - 1] = '+';
 }
 
-void put_rectangle(scene_t *scene, rectangle_t rect) {
+void draw_rectangle(scene_t *scene, rectangle_t rect) {
     for (int i = rect.pos.y; i < rect.pos.y + rect.size.h; i++) {
         for (int j = rect.pos.x; j < rect.pos.x + rect.size.w; j++) {
             scene->screen[i * scene->size.w + j] = rect.sprite;
@@ -94,7 +94,7 @@ void put_rectangle(scene_t *scene, rectangle_t rect) {
     }
 }
 
-void put_text_horizontal(scene_t *scene, text_t text) {
+void draw_text_horizontal(scene_t *scene, text_t text) {
     for (int i = text.pos.x; i < text.pos.x + strlen(text.str); i++) { 
         if (text.pos.x + strlen(text.str) != NULL) {
             scene->screen[text.pos.y * scene->size.w + i] = text.str[i - text.pos.x];
@@ -102,7 +102,7 @@ void put_text_horizontal(scene_t *scene, text_t text) {
     }
 }
 
-void put_text_vertical(scene_t *scene, text_t text) {
+void draw_text_vertical(scene_t *scene, text_t text) {
     for (int i = text.pos.y; i < text.pos.y + strlen(text.str); i++) { 
         if (text.pos.y + strlen(text.str) != NULL) {
             scene->screen[i * scene->size.w + text.pos.x] = text.str[i - text.pos.y];
@@ -110,7 +110,7 @@ void put_text_vertical(scene_t *scene, text_t text) {
     }
 }
 
-void put_line(scene_t *scene, line_t line) {
+void draw_line(scene_t *scene, line_t line) {
     //bresenhams line drawing algorithm
     int dx = abs(line.p2.x - line.p1.x);
     int dy = abs(line.p2.y - line.p1.y);
@@ -127,12 +127,12 @@ void put_line(scene_t *scene, line_t line) {
     }
 }
 
-void put_point(scene_t *scene, point_t pos, char sprite) {
+void draw_point(scene_t *scene, point_t pos, char sprite) {
     scene->screen[pos.y * scene->size.w + pos.x] = sprite;
 }
 
 // thanks to https://www.youtube.com/@nobs_code for explaining this algorithm in https://www.youtube.com/watch?v=hpiILbMkF9w
-void put_circle(scene_t *scene, circle_t circle) {
+void draw_circle(scene_t *scene, circle_t circle) {
     int x = 0;
     int y = circle.radius;
     int p = 1 - circle.radius;
@@ -158,14 +158,14 @@ void put_circle(scene_t *scene, circle_t circle) {
     }
 }
 
-void img_to_ascii(char * img_path, img_object_t * ascii) {
+void img_to_ascii(char * img_path, img_object_t * img) {
     BMP * bmp = bopen(img_path);
     if (bmp == NULL) {
         perror("failed to open image");
         return;
     }
 
-    char * res = (char *) malloc(ascii->size.w * ascii->size.h * sizeof(char));
+    char * res = (char *) malloc(img->size.w * img->size.h * sizeof(char));
     if (res == NULL) {
         bclose(bmp);
         perror("failed to allocate memory for image to ascii conversion");
@@ -176,23 +176,23 @@ void img_to_ascii(char * img_path, img_object_t * ascii) {
     unsigned int width = get_width(bmp);
     unsigned int height = get_height(bmp);
     
-    for (unsigned int x = 0; x < width && x < ascii->size.w; x++) {
-        for (unsigned int y = 0; y < height && y < ascii->size.h; y++) {
+    for (unsigned int x = 0; x < width && x < img->size.w; x++) {
+        for (unsigned int y = 0; y < height && y < img->size.h; y++) {
             get_pixel_rgb(bmp, x, y, &r, &g, &b);
             double brightness = 0.3 * r + 0.59 * g + 0.11 * b;
             int index = (int)(70.0 / 255.0 * brightness);
             if (index >= 70) {
                 index = 69; // Clamp index to prevent overflow
             }
-            res[ascii->size.w * ascii->size.w - (y * ascii->size.w + x)] = ascii_chars[index];
+            res[img->size.w * img->size.w - (y * img->size.w + x)] = ascii_chars[index];
         }
     }
 
-    ascii->sprite = res;
+    img->sprite = res;
     bclose(bmp); // Close BMP file
 }
 
-void put_img(scene_t *scene, img_object_t ascii) {
+void draw_img(scene_t *scene, img_object_t ascii) {
     for (int i = 0; i < ascii.size.h; i++) {
         for (int j = 0; j < ascii.size.w; j++) {
             int screen_x = ascii.pos.x + j;

@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "../utils.h"
+#include "../lib/utils.h"
 
 int main() {
     scene_t main_scene = {
@@ -19,11 +19,11 @@ int main() {
         .p2 = {32, 0}
     };
 
-    init_scene(&main_scene, ' ');
-    put_screen_borders(&main_scene);
-    put_line(&main_scene, line);
-    put_line(&main_scene, line2);
-    draw_scene(&main_scene);
+    init_scene(&main_scene);
+    draw_screen_borders(&main_scene);
+    draw_line(&main_scene, line);
+    draw_line(&main_scene, line2);
+    print_scene(&main_scene);
 
     free(main_scene.screen);
     main_scene.screen = NULL;

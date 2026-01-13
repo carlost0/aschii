@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "../utils.h"
+#include "../lib/utils.h"
 
 int main() {
     scene_t main_scene = {
@@ -17,10 +17,10 @@ int main() {
         .str = "i'm vertical!"
     };
 
-    init_scene(&main_scene, ' ');
-    put_text_horizontal(&main_scene, text_horizontal);
-    put_text_vertical(&main_scene, text_vertical);
-    draw_scene(&main_scene);
+    init_scene(&main_scene);
+    draw_text_horizontal(&main_scene, text_horizontal);
+    draw_text_vertical(&main_scene, text_vertical);
+    print_scene(&main_scene);
     free(main_scene.screen);
     main_scene.screen = NULL;
     return 0;

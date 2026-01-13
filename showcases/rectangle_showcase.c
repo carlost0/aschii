@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "../utils.h"
+#include "../lib/utils.h"
 
 int main() {
     scene_t main_scene = {
@@ -13,10 +13,10 @@ int main() {
         .pos = {24, 40}
     };
 
-    init_scene(&main_scene, ' ');
+    init_scene(&main_scene);
 
-    put_rectangle(&main_scene, rect);
-    draw_scene(&main_scene);
+    draw_rectangle(&main_scene, rect);
+    print_scene(&main_scene);
 
     free(main_scene.screen);
     main_scene.screen = NULL;

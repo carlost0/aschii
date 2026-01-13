@@ -1,6 +1,5 @@
 #include <stdlib.h>
-#include "../utils.h"
-#include "../keyboard.c"
+#include "../lib/utils.h"
 
 int main() {
     int fps = 25;
@@ -23,12 +22,12 @@ int main() {
         scene.screen = NULL;
     }
 
-    init_scene(&scene, ' ');
+    init_scene(&scene);
 
     while (1) {
-        put_screen_borders(&scene);
-        put_rectangle(&scene, ball);
-        draw_scene(&scene);
+        draw_screen_borders(&scene);
+        draw_rectangle(&scene, ball);
+        print_scene(&scene);
         
         if (ball.pos.x + ball.size.w >= scene.size.w - 1 || ball.pos.x <= 1) {
             ball_velocity.x *= -1;

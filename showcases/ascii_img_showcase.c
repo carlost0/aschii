@@ -1,4 +1,4 @@
-#include "../utils.h"
+#include "../lib/utils.h"
 #include <stdlib.h>
 //#include "../ascii.c"
 
@@ -14,13 +14,13 @@ int main() {
         .sprite = {}
     };
 
-    init_scene(&main_scene, ' ');
+    init_scene(&main_scene);
 
     //replace path with path to your image
     img_to_ascii("/home/carlos/Pictures/thinkpad.bmp", &img);
-    put_img(&main_scene, img);
+    draw_img(&main_scene, img);
 
-    draw_scene(&main_scene);
+    print_scene(&main_scene);
     free(main_scene.screen);
     main_scene.screen = NULL;
 }
