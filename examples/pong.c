@@ -75,7 +75,7 @@ selection start_screen() {
         .p2 = {background.pos.x, background.pos.y + background.size.h},
         .sprite = '#'
     };
-    init_scene(&select_scene, ' ');
+    init_scene(&select_scene);
     INIT_INPUT
 
     while (1) {

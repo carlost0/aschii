@@ -1,9 +1,5 @@
 bouncing_ball
 pong
-text
-line
-circle
-rect
-ascii_img
+*_showcase
 .ccls-cache/
 .ccls-cache/**
