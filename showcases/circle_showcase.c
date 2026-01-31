@@ -10,7 +10,8 @@ int main() {
     circle_t circle = {
         .sprite = '#',
         .radius = 24,
-        .pos = {64, 64}
+        .pos = {64, 64},
+        .color = {255, 170, 0}
     };
 
     init_scene(&main_scene);

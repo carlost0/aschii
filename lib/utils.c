@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <time.h>
 
+#define SCENE_PIXEL_POS(x, y) (y * scene->size.w + x)
+
 struct timespec ts;
 
 char ascii_chars[71] =  {'$', '@', 'B', '%', '8', '&',
@@ -37,34 +39,47 @@ void delay(int ms) {
 
 void init_scene(scene_t *scene) {
     // FREE LATER!!!!
-    scene->screen = (char *) malloc((scene->size.w * scene->size.h) * sizeof(char));
-    if (scene->screen == NULL) {perror("failed to allocate screen memory"); return;}
+    scene->screen = (char *)    malloc((scene->size.w * scene->size.h) * sizeof(char));
+    scene->colors = (color_t *) malloc((scene->size.w * scene->size.h) * sizeof(color_t));
+    if (scene->screen == NULL) { perror("failed to allocate screen memory"); exit(1); }
     memset(scene->screen, ' ', scene->size.w * scene->size.h);
+    memset(scene->colors, ' ', scene->size.w * scene->size.h);
 }
 
 void clear_scene(scene_t *scene) {
     //remove line to get rid of flickering, can cause wierd scrolling
     printf("\e[1;1H\e[2J");
     memset(scene->screen, ' ', scene->size.w * scene->size.h);
-
+    memset(scene->colors, ' ', scene->size.w * scene->size.h);
 }
+
 void print_scene(scene_t *scene) {
     if (scene->screen == NULL) return;
 
     for (int i = 0; i < scene->size.h; i++) {
         for (int j = 0; j < scene->size.w; j++) {
-            printf("%c", scene->screen[i * scene->size.w + j]);
+
+            // print pixel with color as 24bit ansi color code
+            printf("\033[38;2;%u;%u;%um%c",                 \
+                    scene->colors[i * scene->size.w + j].r, \
+                    scene->colors[i * scene->size.w + j].g, \
+                    scene->colors[i * scene->size.w + j].b, \
+                    scene->screen[i * scene->size.w + j]); 
+            
+            
         }
         printf("\n");
     }
 }
 
 // Function optimized by duck.ai using Mistrall Small 3
-void draw_screen_borders(scene_t *scene) {
+void draw_screen_borders(scene_t *scene, color_t color) {
     // Draw the top and bottom borders
     for (int j = 0; j < scene->size.w; j++) {
         scene->screen[j] = '-';
         scene->screen[(scene->size.h - 1) * scene->size.w + j] = '-';
+        scene->colors[j] = color;
+        scene->colors[(scene->size.h - 1) * scene->size.w + j] = color;
     }
 
     // Draw the left and right borders
@@ -77,6 +92,8 @@ void draw_screen_borders(scene_t *scene) {
     for (int i = 1; i < scene->size.h - 1; i++) {
         scene->screen[i * scene->size.w] = '|';
         scene->screen[i * scene->size.w + scene->size.w - 1] = '|';
+        scene->colors[i * scene->size.w] = color;
+        scene->colors[i * scene->size.w + scene->size.w - 1] = color;
     }
 
     // Place the corners
@@ -84,12 +101,18 @@ void draw_screen_borders(scene_t *scene) {
     scene->screen[scene->size.w - 1] = '+';
     scene->screen[(scene->size.h - 1) * scene->size.w] = '+';
     scene->screen[(scene->size.h - 1) * scene->size.w + scene->size.w - 1] = '+';
+
+    scene->colors[0] = color;
+    scene->colors[scene->size.w - 1] = color;
+    scene->colors[(scene->size.h - 1) * scene->size.w] = color;
+    scene->colors[(scene->size.h - 1) * scene->size.w + scene->size.w - 1] = color;
 }
 
 void draw_rectangle(scene_t *scene, rectangle_t rect) {
     for (int i = rect.pos.y; i < rect.pos.y + rect.size.h; i++) {
         for (int j = rect.pos.x; j < rect.pos.x + rect.size.w; j++) {
             scene->screen[i * scene->size.w + j] = rect.sprite;
+            scene->colors[i * scene->size.w + j] = rect.color;
         }
     }
 }
@@ -98,6 +121,7 @@ void draw_text_horizontal(scene_t *scene, text_t text) {
     for (int i = text.pos.x; i < text.pos.x + strlen(text.str); i++) { 
         if (text.pos.x + strlen(text.str) != NULL) {
             scene->screen[text.pos.y * scene->size.w + i] = text.str[i - text.pos.x];
+            scene->colors[text.pos.y * scene->size.w + i] = text.color;
         }
     }
 }
@@ -106,6 +130,7 @@ void draw_text_vertical(scene_t *scene, text_t text) {
     for (int i = text.pos.y; i < text.pos.y + strlen(text.str); i++) { 
         if (text.pos.y + strlen(text.str) != NULL) {
             scene->screen[i * scene->size.w + text.pos.x] = text.str[i - text.pos.y];
+            scene->colors[i * scene->size.w + text.pos.x] = text.color;
         }
     }
 }
@@ -120,6 +145,7 @@ void draw_line(scene_t *scene, line_t line) {
 
     while (true) {
         scene->screen[line.p1.y * scene->size.w + line.p1.x] = line.sprite;
+        scene->colors[line.p1.y * scene->size.w + line.p1.x] = line.color;
         if (line.p1.x == line.p2.x && line.p1.y == line.p2.y) break;
         int err2 = err * 2;
         if (err2 > -dy) { err -= dy; line.p1.x += sx; }
@@ -127,8 +153,9 @@ void draw_line(scene_t *scene, line_t line) {
     }
 }
 
-void draw_point(scene_t *scene, point_t pos, char sprite) {
+void draw_point(scene_t *scene, point_t pos, char sprite, color_t color) {
     scene->screen[pos.y * scene->size.w + pos.x] = sprite;
+    scene->colors[pos.y * scene->size.w + pos.x] = color;
 }
 
 // thanks to https://www.youtube.com/@nobs_code for explaining this algorithm in https://www.youtube.com/watch?v=hpiILbMkF9w
@@ -146,6 +173,15 @@ void draw_circle(scene_t *scene, circle_t circle) {
         scene->screen[(circle.pos.y + x) * scene->size.w + (circle.pos.x - y)] = circle.sprite;
         scene->screen[(circle.pos.y - x) * scene->size.w + (circle.pos.x + y)] = circle.sprite;
         scene->screen[(circle.pos.y - x) * scene->size.w + (circle.pos.x - y)] = circle.sprite;
+
+        scene->colors[(circle.pos.y + y) * scene->size.w + (circle.pos.x + x)] = circle.color;
+        scene->colors[(circle.pos.y + y) * scene->size.w + (circle.pos.x - x)] = circle.color;
+        scene->colors[(circle.pos.y - y) * scene->size.w + (circle.pos.x + x)] = circle.color;
+        scene->colors[(circle.pos.y - y) * scene->size.w + (circle.pos.x - x)] = circle.color;
+        scene->colors[(circle.pos.y + x) * scene->size.w + (circle.pos.x + y)] = circle.color;
+        scene->colors[(circle.pos.y + x) * scene->size.w + (circle.pos.x - y)] = circle.color;
+        scene->colors[(circle.pos.y - x) * scene->size.w + (circle.pos.x + y)] = circle.color;
+        scene->colors[(circle.pos.y - x) * scene->size.w + (circle.pos.x - y)] = circle.color;
 
         x++;
 
@@ -199,6 +235,7 @@ void draw_img(scene_t *scene, img_object_t ascii) {
             int screen_y = ascii.pos.y + i;
             if (screen_x < scene->size.w && screen_y < scene->size.h) { // Boundary check
                 scene->screen[screen_y * scene->size.w + screen_x] = ascii.sprite[i * ascii.size.w + j];
+                scene->colors[screen_y * scene->size.w + screen_x] = ascii.color;
             }
         }
     }
@@ -220,3 +257,4 @@ int check_collision(rectangle_t box1, rectangle_t box2) {
     // If none of the above, a collision has occurred
     return 1;
 }
+
