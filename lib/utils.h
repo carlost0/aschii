@@ -1,5 +1,5 @@
-#ifndef SCREEN_H
-#define SCREEN_H
+#ifndef UTILS_H_
+#define UTILS_H_
 
 
 typedef struct {
