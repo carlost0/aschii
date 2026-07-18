@@ -1,6 +1,10 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+typedef enum{
+    success,
+    error,
+} error_e;
 
 typedef struct {
     unsigned char r;
@@ -9,11 +13,11 @@ typedef struct {
 } color_t;
 
 typedef struct {
-    int w, h;
+    unsigned int w, h;
 } box_t;
 
 typedef struct {
-    int x, y;
+    unsigned int x, y;
 } point_t;
 
 typedef struct {
@@ -32,7 +36,7 @@ typedef struct {
 typedef struct {
     point_t       pos;
     color_t       color;
-    int           radius;
+    unsigned int  radius;
     char          sprite; // the object will be drawn with that character
 } circle_t;
 
@@ -57,17 +61,18 @@ typedef struct {
 } img_object_t;
 
 
-void init_scene(scene_t *scene);                                            // initializes specified scene
-void clear_scene(scene_t *scene);                                           // clears specified scene
-void print_scene(scene_t *scene);                                           // prints specified scene to stdout
+error_e init_scene(scene_t *scene);                                            // initializes specified scene
+error_e clear_scene(scene_t *scene);                                           // clears specified scene
+error_e print_scene(scene_t *scene);                                           // prints specified scene to stdout
+void    clear_screen();
 
-void draw_screen_borders(scene_t *scene, color_t color);                                   // draws cool borders to the specified scene
-void draw_rectangle(scene_t *scene, rectangle_t rect);                      // draws a rectangle to the specified scene
-void draw_text_horizontal(scene_t *scene, text_t text);                     // draws text horizonally to the specified scene
-void draw_text_vertical(scene_t *scene, text_t text);                       // draws text vertically to the specified scene
-void draw_line(scene_t *scene, line_t line);                                // draws a line to scpecified scene
-void draw_point(scene_t *scene, point_t pos, char sprite, color_t color);   // draws sprite to the specified location on the specified scene
-void draw_circle(scene_t *scene, circle_t circle);                          //draws a circle to the specified scene
+error_e draw_screen_borders(scene_t *scene, color_t color);                                   // draws cool borders to the specified scene
+error_e draw_rectangle(scene_t *scene, rectangle_t rect);                      // draws a rectangle to the specified scene
+error_e draw_text_horizontal(scene_t *scene, text_t text);                     // draws text horizonally to the specified scene
+error_e draw_text_vertical(scene_t *scene, text_t text);                       // draws text vertically to the specified scene
+error_e draw_line(scene_t *scene, line_t line);                                // draws a line to scpecified scene
+error_e draw_point(scene_t *scene, point_t pos, char sprite, color_t color);   // draws sprite to the specified location on the specified scene
+error_e draw_circle(scene_t *scene, circle_t circle);                          //draws a circle to the specified scene
 
 void draw_img(scene_t *scene, img_object_t img);                            // draws an ascii image to specified scene
 void img_to_ascii(char * img_path, img_object_t * img);                     // converts bitmap image to a string

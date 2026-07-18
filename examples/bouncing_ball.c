@@ -12,7 +12,8 @@ int main() {
     rectangle_t ball = {
         .size = {5, 3},
         .pos = {64, 18},
-        .sprite = '@'
+        .sprite = '@',
+        .color = {255, 255, 255}
     };
     
     point_t ball_velocity = {2, 1};
@@ -22,10 +23,12 @@ int main() {
         scene.screen = NULL;
     }
 
-    init_scene(&scene);
+    if (init_scene(&scene) == error) {
+        return 1;
+    }
 
     while (1) {
-        draw_screen_borders(&scene);
+        draw_screen_borders(&scene, (color_t) {255, 255, 255});
         draw_rectangle(&scene, ball);
         print_scene(&scene);
         
@@ -39,8 +42,9 @@ int main() {
 
         ball.pos = add_points(ball.pos, ball_velocity);
         
-        delay(1000000 / fps);
+        delay(1000 / fps);
         clear_scene(&scene);
     }
+
     return 0;
 }

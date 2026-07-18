@@ -7,10 +7,11 @@
 #include <unistd.h>
 #include <time.h>
 
-#define SCENE_PIXEL_POS(x, y) (y * scene->size.w + x)
 
-struct timespec ts;
+//#define SCENE_PIXEL_POS(x, y) (y * scene->size.w + x)
 
+
+/*
 char ascii_chars[71] =  {'$', '@', 'B', '%', '8', '&',
                 'W', 'M', '#', '*', 'o', 'a',
                 'h', 'k', 'b', 'd', 'p', 'q',
@@ -23,6 +24,7 @@ char ascii_chars[71] =  {'$', '@', 'B', '%', '8', '&',
                 '~', '<', '>', 'i', '!', 'l',
                 'I', ';', ':', ',', '"', '^',
                 '`', '\'', '.', ' '};
+*/
 
 point_t add_points(point_t v1, point_t v2) {
     point_t res;
@@ -32,48 +34,97 @@ point_t add_points(point_t v1, point_t v2) {
 }
 
 void delay(int ms) {
-    ts.tv_sec = 0;
-    ts.tv_nsec = ms * 1000;
-    nanosleep(&ts, NULL); //lsp might give error, compile with -D_POSIX_C_SOURCE=200809L
+    clock_t start_time = clock();
+    clock_t wait_time = ms * (CLOCKS_PER_SEC / 1000);
+
+    while (clock() - start_time < wait_time);
 }
 
-void init_scene(scene_t *scene) {
+error_e init_scene(scene_t *scene) {
+    if (!scene) {
+        perror("unable to init scene, scene is a null pointer");
+        return error;
+    }
     // FREE LATER!!!!
     scene->screen = (char *)    malloc((scene->size.w * scene->size.h) * sizeof(char));
     scene->colors = (color_t *) malloc((scene->size.w * scene->size.h) * sizeof(color_t));
-    if (scene->screen == NULL) { perror("failed to allocate screen memory"); exit(1); }
+
+    if (scene->screen == NULL || scene->colors == NULL) {
+        perror("unable to init scene, failed to allocate screen memory");
+        return error;
+    }
+
+    if (!(scene->screen && scene->colors)) {
+        perror("unable to init scene, scene is a null pointer");
+        return error;
+    }
+
     memset(scene->screen, ' ', scene->size.w * scene->size.h);
-    memset(scene->colors, ' ', scene->size.w * scene->size.h);
+    memset(scene->colors, ' ', scene->size.w * scene->size.h * sizeof(color_t));
+
+    return success;
 }
 
-void clear_scene(scene_t *scene) {
-    //remove line to get rid of flickering, can cause wierd scrolling
-    printf("\e[1;1H\e[2J");
+error_e clear_scene(scene_t *scene) {
+    if (!(scene->screen && scene->colors)) {
+        perror("unable to clear scene, scene is a null pointer");
+        return error;
+    }
+
+    //printf("\e[H");
     memset(scene->screen, ' ', scene->size.w * scene->size.h);
-    memset(scene->colors, ' ', scene->size.w * scene->size.h);
+    memset(scene->colors, ' ', scene->size.w * scene->size.h * sizeof(color_t));
+
+    return success;
 }
 
-void print_scene(scene_t *scene) {
-    if (scene->screen == NULL) return;
+error_e print_scene(scene_t *scene) {
+    if (!(scene->screen && scene->colors)) {
+        perror("unable to print scene, scene is a null pointer");
+        return error;
+    }
+
+    size_t cap = scene->size.w * scene->size.h * strlen("\e[32;2;255;255:255ma"); //worst case 
+    char *buf = (char *) malloc(cap);
+
+    if (!buf) {
+        perror("unable to print scene, failed to allocate memory");
+        return error;
+    }
+
+    printf("\e[H");
+    char *ptr = buf;
 
     for (int i = 0; i < scene->size.h; i++) {
         for (int j = 0; j < scene->size.w; j++) {
-
             // print pixel with color as 24bit ansi color code
-            printf("\033[38;2;%u;%u;%um%c",                 \
+            ptr += sprintf(ptr, "\e[38;2;%u;%u;%um%c",      \
                     scene->colors[i * scene->size.w + j].r, \
                     scene->colors[i * scene->size.w + j].g, \
                     scene->colors[i * scene->size.w + j].b, \
                     scene->screen[i * scene->size.w + j]); 
-            
-            
         }
-        printf("\n");
+        ptr += sprintf(ptr, "\n");
     }
+
+    fwrite(buf, 1, (size_t) (ptr - buf), stdout);
+    fflush(stdout);
+    free(buf);
+
+    return success;
+}
+
+void clear_screen() {
+    printf("\e[1;1H\e[2J");
 }
 
 // Function optimized by duck.ai using Mistrall Small 3
-void draw_screen_borders(scene_t *scene, color_t color) {
+error_e draw_screen_borders(scene_t *scene, color_t color) {
+    if (!(scene->screen && scene->colors)) {
+        perror("unable to draw screen borders, scene is a null pointer");
+        return error;
+    }
+
     // Draw the top and bottom borders
     for (int j = 0; j < scene->size.w; j++) {
         scene->screen[j] = '-';
@@ -82,13 +133,6 @@ void draw_screen_borders(scene_t *scene, color_t color) {
         scene->colors[(scene->size.h - 1) * scene->size.w + j] = color;
     }
 
-    // Draw the left and right borders
-    /*
-    for (int i = 1; i < screen.h - 1; i++) {
-        scene->screen[i * scene.size.w] = '|';
-        scene->screen[i * scene.size.w + screen.w - 1] = '|';
-    }
-    */
     for (int i = 1; i < scene->size.h - 1; i++) {
         scene->screen[i * scene->size.w] = '|';
         scene->screen[i * scene->size.w + scene->size.w - 1] = '|';
@@ -106,36 +150,98 @@ void draw_screen_borders(scene_t *scene, color_t color) {
     scene->colors[scene->size.w - 1] = color;
     scene->colors[(scene->size.h - 1) * scene->size.w] = color;
     scene->colors[(scene->size.h - 1) * scene->size.w + scene->size.w - 1] = color;
+
+    return success;
 }
 
-void draw_rectangle(scene_t *scene, rectangle_t rect) {
+error_e draw_rectangle(scene_t *scene, rectangle_t rect) {
+    if (!(scene->screen && scene->colors)) {
+        perror("unable to draw rectangle, scene is a null pointer");
+        return error;
+    }
+
+    if (rect.pos.x < 0 || rect.pos.x + rect.size.w >= scene->size.w ||
+        rect.pos.y < 0 || rect.pos.y + rect.size.h >= scene->size.h) {
+        perror("unable to draw rectangle, rectangle is out of bounds");
+        return error;
+    }
+
     for (int i = rect.pos.y; i < rect.pos.y + rect.size.h; i++) {
         for (int j = rect.pos.x; j < rect.pos.x + rect.size.w; j++) {
             scene->screen[i * scene->size.w + j] = rect.sprite;
             scene->colors[i * scene->size.w + j] = rect.color;
         }
     }
+
+    return success;
 }
 
-void draw_text_horizontal(scene_t *scene, text_t text) {
+error_e draw_text_horizontal(scene_t *scene, text_t text) {
+    if (!(scene->screen && scene->colors)) {
+        perror("unable to draw text, scene is a null pointer");
+        return error;
+    }
+
+    if (text.pos.x + strlen(text.str) >= scene->size.w) {
+        perror("unable to draw text, text is out of bounds");
+        return error;
+    }
+
+    if (text.pos.y < 0 || text.pos.y >= scene->size.h) {
+        perror("unable to draw text, text is out of bounds");
+        return error;
+    }
+
     for (int i = text.pos.x; i < text.pos.x + strlen(text.str); i++) { 
-        if (text.pos.x + strlen(text.str) != NULL) {
-            scene->screen[text.pos.y * scene->size.w + i] = text.str[i - text.pos.x];
-            scene->colors[text.pos.y * scene->size.w + i] = text.color;
-        }
+        scene->screen[text.pos.y * scene->size.w + i] = text.str[i - text.pos.x];
+        scene->colors[text.pos.y * scene->size.w + i] = text.color;
     }
+
+    return success;
 }
 
-void draw_text_vertical(scene_t *scene, text_t text) {
+error_e draw_text_vertical(scene_t *scene, text_t text) {
+    if (!(scene->screen && scene->colors)) {
+        perror("unable to draw text, scene is a null pointer");
+        return error;
+    }
+
+    if (text.pos.y + strlen(text.str) >= scene->size.h) {
+        perror("unable to draw text, text is out of bounds");
+        return error;
+    }
+
+    if (text.pos.x < 0 || text.pos.x >= scene->size.w) {
+        perror("unable to draw text, text is out of bounds");
+        return error;
+    }
+
     for (int i = text.pos.y; i < text.pos.y + strlen(text.str); i++) { 
-        if (text.pos.y + strlen(text.str) != NULL) {
-            scene->screen[i * scene->size.w + text.pos.x] = text.str[i - text.pos.y];
-            scene->colors[i * scene->size.w + text.pos.x] = text.color;
-        }
+        scene->screen[i * scene->size.w + text.pos.x] = text.str[i - text.pos.y];
+        scene->colors[i * scene->size.w + text.pos.x] = text.color;
     }
+
+    return success;
 }
 
-void draw_line(scene_t *scene, line_t line) {
+error_e draw_line(scene_t *scene, line_t line) {
+    if (!(scene->screen && scene->colors)) {
+        perror("unable to draw line, scene is a null pointer");
+        return error;
+    }
+
+    if (line.p1.x < 0 || line.p1.x >= scene->size.w || 
+        line.p1.y < 0 || line.p1.y >= scene->size.h) {
+        perror("unable to draw line, p1 is out of bounds");
+        return error;
+    }
+
+    if (line.p2.x < 0 || line.p2.x >= scene->size.w || 
+        line.p2.y < 0 || line.p2.y >= scene->size.h) {
+        perror("unable to draw line, p2 is out of bounds");
+        return error;
+    }
+
     //bresenhams line drawing algorithm
     int dx = abs(line.p2.x - line.p1.x);
     int dy = abs(line.p2.y - line.p1.y);
@@ -151,15 +257,41 @@ void draw_line(scene_t *scene, line_t line) {
         if (err2 > -dy) { err -= dy; line.p1.x += sx; }
         if (err2 < dx) { err += dx; line.p1.y += sy; }
     }
+
+    return success;
 }
 
-void draw_point(scene_t *scene, point_t pos, char sprite, color_t color) {
+error_e draw_pixel(scene_t *scene, point_t pos, char sprite, color_t color) {
+    if (!(scene->screen && scene->colors)) {
+        perror("unable to draw pixel, scene is a null pointer");
+        return error;
+    }
+
+    if (pos.x < 0 || pos.x >= scene->size.w || 
+        pos.y < 0 || pos.y >= scene->size.h) {
+        perror("unable to draw pixel, pos is out of bounds");
+        return error;
+    }
+
     scene->screen[pos.y * scene->size.w + pos.x] = sprite;
     scene->colors[pos.y * scene->size.w + pos.x] = color;
+
+    return success;
 }
 
 // thanks to https://www.youtube.com/@nobs_code for explaining this algorithm in https://www.youtube.com/watch?v=hpiILbMkF9w
-void draw_circle(scene_t *scene, circle_t circle) {
+error_e draw_circle(scene_t *scene, circle_t circle) {
+    if (!(scene->screen && scene->colors)) {
+        perror("unable to draw circle, scene is a null pointer");
+        return error;
+    }
+    
+    if (circle.pos.x - circle.radius < 0 || circle.pos.x + circle.radius >= scene->size.w ||
+        circle.pos.y - circle.radius < 0 || circle.pos.y + circle.radius >= scene->size.h) {
+        perror("unable to draw circle, circle is out of bounds");
+        return error;
+    }
+
     int x = 0;
     int y = circle.radius;
     int p = 1 - circle.radius;
@@ -192,8 +324,11 @@ void draw_circle(scene_t *scene, circle_t circle) {
             p += 2 * (x - y) + 1;
         }
     }
+
+    return success;
 }
 
+/*
 void img_to_ascii(char * img_path, img_object_t * img) {
     BMP * bmp = bopen(img_path);
     if (bmp == NULL) {
@@ -240,7 +375,7 @@ void draw_img(scene_t *scene, img_object_t ascii) {
         }
     }
 }
-
+*/
 
 
 // function stolen from https://peerdh.com/blogs/programming-insights/implementing-aabb-collision-detection-algorithms-in-c-for-2d-sprite-based-games-1
