@@ -79,7 +79,7 @@ void img_to_ascii(char * img_path, img_object_t * img);                     // c
 
 int check_collision(rectangle_t box1, rectangle_t box2);                    // uses aabb to check collision between two boxes
 point_t add_points(point_t p1, point_t p2);                                 // adds two points together: p1.x + p2.x; p1.y + p2.y
-void delay(int ms);                                                         // delays specified time in millisecconds
+void delay(unsigned int ms);                                                         // delays specified time in millisecconds
 
 extern char ascii_chars[];
 #endif

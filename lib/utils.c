@@ -4,10 +4,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include <unistd.h>
 #include <time.h>
 
 
+#ifdef _WIN32
+#include <windows.h>
+#endif //_WIN32
 //#define SCENE_PIXEL_POS(x, y) (y * scene->size.w + x)
 
 
@@ -33,11 +35,17 @@ point_t add_points(point_t v1, point_t v2) {
     return res;
 }
 
-void delay(int ms) {
+void delay(unsigned int ms) {
+    #ifndef _WIN32
+
     clock_t start_time = clock();
     clock_t wait_time = ms * (CLOCKS_PER_SEC / 1000);
 
     while (clock() - start_time < wait_time);
+    #else 
+
+    Sleep(ms);
+    #endif
 }
 
 error_e init_scene(scene_t *scene) {
@@ -84,7 +92,7 @@ error_e print_scene(scene_t *scene) {
         return error;
     }
 
-    size_t cap = scene->size.w * scene->size.h * strlen("\e[32;2;255;255:255ma"); //worst case 
+    size_t cap = scene->size.w * scene->size.h * strlen("\x1b[32;2;255;255:255ma"); //worst case 
     char *buf = (char *) malloc(cap);
 
     if (!buf) {
@@ -92,19 +100,19 @@ error_e print_scene(scene_t *scene) {
         return error;
     }
 
-    printf("\e[H");
+    printf("\x1b[H");
     char *ptr = buf;
 
     for (int i = 0; i < scene->size.h; i++) {
         for (int j = 0; j < scene->size.w; j++) {
             // print pixel with color as 24bit ansi color code
-            ptr += sprintf(ptr, "\e[38;2;%u;%u;%um%c",      \
+            ptr += sprintf(ptr, "\x1b[38;2;%u;%u;%um%c",      \
                     scene->colors[i * scene->size.w + j].r, \
                     scene->colors[i * scene->size.w + j].g, \
                     scene->colors[i * scene->size.w + j].b, \
                     scene->screen[i * scene->size.w + j]); 
         }
-        ptr += sprintf(ptr, "\n");
+        ptr += sprintf(ptr, "\n\r");
     }
 
     fwrite(buf, 1, (size_t) (ptr - buf), stdout);
@@ -115,7 +123,7 @@ error_e print_scene(scene_t *scene) {
 }
 
 void clear_screen() {
-    printf("\e[1;1H\e[2J");
+    printf("\x1b[1;1H\x1b[2J");
 }
 
 // Function optimized by duck.ai using Mistrall Small 3

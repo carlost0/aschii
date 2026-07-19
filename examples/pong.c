@@ -314,6 +314,7 @@ error_e main_game(selection sel) {
             break;
         }
 
+        //
         //add velocity vector to position
         ball.pos = add_points(ball.pos, ball_velocity);
         err = print_scene(&scene);

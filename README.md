@@ -21,14 +21,14 @@ currently, input is taken from stdin on a seperate thread
 - to get input use the `GET_INPUT` macro which stores the input to a variable of type char called `input`
 - don't forget to end the input system once you're done using it with the `END_INPUT`
 ---
-for examples, check out the `examples/` and `showcases/` directory
+for examples, check out the `examples/` and `showcases/` directories
 ## todo
 - add good documentation
 - add sound support
 - ~~add colors~~
 - change input system so it doesnt read from stdin anymore
-## !todo
 - add windows support
+## !todo
 - start capitalizing words
 ## acknowledgements
 - used some generative AI to fix bugs and optimize code
