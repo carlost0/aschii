@@ -13,7 +13,6 @@
 //#define SCENE_PIXEL_POS(x, y) (y * scene->size.w + x)
 
 
-/*
 char ascii_chars[71] =  {'$', '@', 'B', '%', '8', '&',
                 'W', 'M', '#', '*', 'o', 'a',
                 'h', 'k', 'b', 'd', 'p', 'q',
@@ -26,8 +25,11 @@ char ascii_chars[71] =  {'$', '@', 'B', '%', '8', '&',
                 '~', '<', '>', 'i', '!', 'l',
                 'I', ';', ':', ',', '"', '^',
                 '`', '\'', '.', ' '};
-*/
 
+int random_num(int min, int max) {
+    return rand() % (max - min + 1)
+        + min;
+}
 point_t add_points(point_t v1, point_t v2) {
     point_t res;
     res.x = v1.x + v2.x;
@@ -86,7 +88,7 @@ error_e clear_scene(scene_t *scene) {
     return success;
 }
 
-error_e print_scene(scene_t *scene) {
+error_e print_scene(scene_t *scene, bool random) {
     if (!(scene->screen && scene->colors)) {
         perror("unable to print scene, scene is a null pointer");
         return error;
@@ -103,16 +105,33 @@ error_e print_scene(scene_t *scene) {
     printf("\x1b[H");
     char *ptr = buf;
 
-    for (int i = 0; i < scene->size.h; i++) {
-        for (int j = 0; j < scene->size.w; j++) {
-            // print pixel with color as 24bit ansi color code
-            ptr += sprintf(ptr, "\x1b[38;2;%u;%u;%um%c",      \
-                    scene->colors[i * scene->size.w + j].r, \
-                    scene->colors[i * scene->size.w + j].g, \
-                    scene->colors[i * scene->size.w + j].b, \
-                    scene->screen[i * scene->size.w + j]); 
+    if (random) {
+        for (int i = 0; i < scene->size.h; i++) {
+            for (int j = 0; j < scene->size.w; j++) {
+                // print pixel with color as 24bit ansi color code
+                if (scene->screen[i * scene->size.w + j] == ' ')
+                    ptr += sprintf(ptr, " ");
+                else
+                    ptr += sprintf(ptr, "\x1b[38;2;%u;%u;%um%c", \
+                        scene->colors[i * scene->size.w + j].r,  \
+                        scene->colors[i * scene->size.w + j].g,  \
+                        scene->colors[i * scene->size.w + j].b,  \
+                        ascii_chars[random_num(0, 70)]);
+            }
+            ptr += sprintf(ptr, "\n\r");
         }
-        ptr += sprintf(ptr, "\n\r");
+    } else {
+        for (int i = 0; i < scene->size.h; i++) {
+            for (int j = 0; j < scene->size.w; j++) {
+                // print pixel with color as 24bit ansi color code
+                ptr += sprintf(ptr, "\x1b[38;2;%u;%u;%um%c", \
+                    scene->colors[i * scene->size.w + j].r,  \
+                    scene->colors[i * scene->size.w + j].g,  \
+                    scene->colors[i * scene->size.w + j].b,  \
+                    scene->screen[i * scene->size.w + j]);
+            }
+            ptr += sprintf(ptr, "\n\r");
+        }
     }
 
     fwrite(buf, 1, (size_t) (ptr - buf), stdout);
@@ -168,8 +187,8 @@ error_e draw_rectangle(scene_t *scene, rectangle_t rect) {
         return error;
     }
 
-    if (rect.pos.x < 0 || rect.pos.x + rect.size.w >= scene->size.w ||
-        rect.pos.y < 0 || rect.pos.y + rect.size.h >= scene->size.h) {
+    if (rect.pos.x < 0 || rect.pos.x + rect.size.w > scene->size.w ||
+        rect.pos.y < 0 || rect.pos.y + rect.size.h > scene->size.h) {
         perror("unable to draw rectangle, rectangle is out of bounds");
         return error;
     }
@@ -190,12 +209,12 @@ error_e draw_text_horizontal(scene_t *scene, text_t text) {
         return error;
     }
 
-    if (text.pos.x + strlen(text.str) >= scene->size.w) {
+    if (text.pos.x + strlen(text.str) > scene->size.w) {
         perror("unable to draw text, text is out of bounds");
         return error;
     }
 
-    if (text.pos.y < 0 || text.pos.y >= scene->size.h) {
+    if (text.pos.y < 0 || text.pos.y > scene->size.h) {
         perror("unable to draw text, text is out of bounds");
         return error;
     }
@@ -214,12 +233,12 @@ error_e draw_text_vertical(scene_t *scene, text_t text) {
         return error;
     }
 
-    if (text.pos.y + strlen(text.str) >= scene->size.h) {
+    if (text.pos.y + strlen(text.str) > scene->size.h) {
         perror("unable to draw text, text is out of bounds");
         return error;
     }
 
-    if (text.pos.x < 0 || text.pos.x >= scene->size.w) {
+    if (text.pos.x < 0 || text.pos.x > scene->size.w) {
         perror("unable to draw text, text is out of bounds");
         return error;
     }
@@ -238,14 +257,14 @@ error_e draw_line(scene_t *scene, line_t line) {
         return error;
     }
 
-    if (line.p1.x < 0 || line.p1.x >= scene->size.w || 
-        line.p1.y < 0 || line.p1.y >= scene->size.h) {
+    if (line.p1.x < 0 || line.p1.x > scene->size.w || 
+        line.p1.y < 0 || line.p1.y > scene->size.h) {
         perror("unable to draw line, p1 is out of bounds");
         return error;
     }
 
-    if (line.p2.x < 0 || line.p2.x >= scene->size.w || 
-        line.p2.y < 0 || line.p2.y >= scene->size.h) {
+    if (line.p2.x < 0 || line.p2.x > scene->size.w || 
+        line.p2.y < 0 || line.p2.y > scene->size.h) {
         perror("unable to draw line, p2 is out of bounds");
         return error;
     }
@@ -275,8 +294,8 @@ error_e draw_pixel(scene_t *scene, point_t pos, char sprite, color_t color) {
         return error;
     }
 
-    if (pos.x < 0 || pos.x >= scene->size.w || 
-        pos.y < 0 || pos.y >= scene->size.h) {
+    if (pos.x < 0 || pos.x > scene->size.w || 
+        pos.y < 0 || pos.y > scene->size.h) {
         perror("unable to draw pixel, pos is out of bounds");
         return error;
     }
@@ -294,8 +313,8 @@ error_e draw_circle(scene_t *scene, circle_t circle) {
         return error;
     }
     
-    if (circle.pos.x - circle.radius < 0 || circle.pos.x + circle.radius >= scene->size.w ||
-        circle.pos.y - circle.radius < 0 || circle.pos.y + circle.radius >= scene->size.h) {
+    if (circle.pos.x - circle.radius < 0 || circle.pos.x + circle.radius > scene->size.w ||
+        circle.pos.y - circle.radius < 0 || circle.pos.y + circle.radius > scene->size.h) {
         perror("unable to draw circle, circle is out of bounds");
         return error;
     }

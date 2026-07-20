@@ -89,7 +89,7 @@ selection start_screen() {
     };
 
     if (init_scene(&select_scene) == error) return QUIT;
-    INIT_INPUT
+    INIT_INPUT;
 
     while (1) {
         if (
@@ -104,7 +104,7 @@ selection start_screen() {
         draw_line(&select_scene, outline_2) == error ||
         draw_line(&select_scene, outline_3) == error ||
         draw_line(&select_scene, outline_4) == error ||
-        print_scene(&select_scene) == error)
+        print_scene(&select_scene, false) == error)
         return QUIT;
 
         /*
@@ -122,7 +122,7 @@ selection start_screen() {
         print_scene(&select_scene);
         */
 
-        GET_INPUT
+        GET_INPUT;
 
         if (input == 'w' && state > 0) {
             state--;
@@ -202,7 +202,7 @@ error_e main_game(selection sel) {
     if (init_scene(&scene) == error) return error;
 
     while (input != 'q') {
-        GET_INPUT
+        GET_INPUT;
 
         if (
         draw_screen_borders(&scene, (color_t) {255, 255, 255}) == error ||
@@ -296,7 +296,7 @@ error_e main_game(selection sel) {
                 .str = "Payer 1 won!",
                 .color = {255, 0, 0},
             });
-            print_scene(&scene);
+            print_scene(&scene, false);
             delay(1000);
             break;
         } else if (score[1] == 53) {
@@ -309,7 +309,7 @@ error_e main_game(selection sel) {
                 .str = "Payer 2 won!",
                 .color = {0, 0, 255},
             });
-            print_scene(&scene);
+            print_scene(&scene, false);
             delay(1000);
             break;
         }
@@ -317,7 +317,7 @@ error_e main_game(selection sel) {
         //
         //add velocity vector to position
         ball.pos = add_points(ball.pos, ball_velocity);
-        err = print_scene(&scene);
+        err = print_scene(&scene, false);
         if (err == error) return error;
         err = clear_scene(&scene);
         if (err == error) return error;
@@ -325,7 +325,7 @@ error_e main_game(selection sel) {
     }
 
 
-    END_INPUT
+    END_INPUT;
     free(scene.screen);
     free(scene.colors);
     scene.screen = NULL;

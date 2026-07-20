@@ -30,7 +30,7 @@ int main() {
     while (1) {
         draw_screen_borders(&scene, (color_t) {255, 255, 255});
         draw_rectangle(&scene, ball);
-        print_scene(&scene);
+        print_scene(&scene, true);
         
         if (ball.pos.x + ball.size.w >= scene.size.w - 1 || ball.pos.x <= 1) {
             ball_velocity.x *= -1;

@@ -3,9 +3,11 @@
 #ifndef _WIN32
 #include <termios.h>
 #include <unistd.h>
+#include <pthread.h>
 
 struct termios oldt;
 char kb_input = 0;
+int input_running;
 
 void disable_canonical_input() {
     struct termios newt;
@@ -19,10 +21,17 @@ void enable_canonical_input() {
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);  // restore old setting
 }
 
-void* get_keyboard_input(void *arg) {
-    //disable_canonical_input();  // Enable non-canonical mode
-    read(STDIN_FILENO, &kb_input, 1);  // Read one character
-    //enable_canonical_input();    // Restore canonical mode
+void *get_keyboard_input(void *arg) {
+    input_ctx_t *ctx = arg;
+    while (ctx->running) {
+        char c;
+        size_t n = read(STDIN_FILENO, &c, 1);
+        if (n == 1) {
+            pthread_mutex_lock(&ctx->mutex);
+            ctx->kb_input = c;
+            pthread_mutex_unlock(&ctx->mutex);
+        }
+    }
     return NULL;
 }
 #else

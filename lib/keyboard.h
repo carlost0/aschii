@@ -1,36 +1,55 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
+#include <pthread.h>
+
+typedef struct {
+    pthread_mutex_t mutex;
+    char kb_input;
+    int running;
+} input_ctx_t;
+
 extern char kb_input;
 extern char input;
+//extern pthread_mutex_t mutex;
 
+
+
+#ifndef _WIN32
 
 void * get_keyboard_input(void *args);
 void enable_canonical_input();
 void disable_canonical_input();
 
-#endif //KEYBOARD_H
-       //
-#ifndef _WIN32
 
-#define INIT_INPUT                                       \
-    char input;                                          \
-    pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;   \
-    pthread_t kb;                                        \
-    pthread_mutex_init(&mutex, NULL);                    \
-    disable_canonical_input();
+#define INIT_INPUT \
+    pthread_t kb; \
+    char input; \
+    input_ctx_t *input_ctx = malloc(sizeof *input_ctx); \
+    input_ctx->kb_input = 0; \
+    input_ctx->running = 1; \
+    pthread_mutex_init(&input_ctx->mutex, NULL); \
+    disable_canonical_input(); \
+    if (pthread_create(&kb, NULL, get_keyboard_input, input_ctx) != 0) \
+        return 1;
 
-#define END_INPUT                                        \
-    enable_canonical_input();                            \
-    pthread_mutex_destroy(&mutex);                       \
+#define GET_INPUT do { \
+    pthread_mutex_lock(&input_ctx->mutex); \
+    input = input_ctx->kb_input; \
+    input_ctx->kb_input = 0; \
+    pthread_mutex_unlock(&input_ctx->mutex); \
+} while (0)
 
-#define GET_INPUT do {                                   \
-    pthread_create(&kb, NULL, get_keyboard_input, NULL); \
-    pthread_mutex_lock(&mutex);                          \
-    input = kb_input;                                    \
-    pthread_mutex_unlock(&mutex);                        \
-    kb_input = 0;                                        \
-} while (0);
+#define END_INPUT do { \
+    pthread_mutex_lock(&input_ctx->mutex); \
+    input_ctx->running = 0; \
+    pthread_mutex_unlock(&input_ctx->mutex); \
+    pthread_join(kb, NULL); \
+    pthread_mutex_destroy(&input_ctx->mutex); \
+    free(input_ctx); \
+    enable_canonical_input(); \
+} while (0)
+
 #else
 
 #define WIN32_LEAN_AND_MEAN
@@ -99,4 +118,6 @@ static void kb_input_get(KBThreadInput *ctx, char *out_char) {
 
 #define END_INPUT             kb_input_end(&kb_ctx);
 #define GET_INPUT             kb_input_get(&kb_ctx, &input);
-#endif
+#endif //_WIN32
+       
+#endif //KEYBOARD_H

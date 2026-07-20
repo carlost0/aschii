@@ -4,7 +4,7 @@ showcases = showcases/ascii_img_showcase.c showcases/circle_showcase.c showcases
 examples =  examples/bouncing_ball.c examples/pong.c
 
 CFLAGS = -std=c99 -Wall -Wextra
-CC = x86_64-w64-mingw32-gcc
+CC = cc
 
 clean: 
 	-rm *.a *.o *example *showcase
