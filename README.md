@@ -27,9 +27,8 @@ for examples, check out the `examples/` and `showcases/` directories
 - add sound support
 - ~~add colors~~
 - change input system so it doesnt read from stdin anymore
-- add windows support
+- ~~add windows support~~
 ## !todo
 - start capitalizing words
 ## acknowledgements
 - used some generative AI to fix bugs and optimize code
-- used mattflows beautiful bitmap c library: https://github.com/mattflow/cbmp
