@@ -1,3 +1,7 @@
+> [!WARNING]
+> this library is no longer developed.
+> it has been moved to [ngl.h](https://github.com/carlost0/ngl.h)
+
 # aschii
 simple c framework for ascii gamedevelopment on linux
 ## docs
